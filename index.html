@@ -1141,30 +1141,32 @@ checkAuth();
 const AV_KEY = '2X0UQA56PQDYL1LT';
 const PRICES_KEY = 'patrimonio:prices';
 
-// Mapa ticker → plataforma + nome do campo no portfólio
-const TICKER_MAP = {
-  // XTB
-  'SXRV.DE': { search:'NASDAQ 100',         exchange:'XETRA', symbol:'SXRV.DEX' },
-  'SXR8.DE': { search:'Core S&P 500',        exchange:'XETRA', symbol:'SXR8.DEX' },
-  'NVDA':    { search:'NVDA',                 symbol:'NVDA'    },
-  'AMD':     { search:'AMD',                  symbol:'AMD'     },
-  'AAPL':    { search:'Apple',                symbol:'AAPL'    },
-  'MSFT':    { search:'Microsoft',            symbol:'MSFT'    },
-  'PLTR':    { search:'Palantir',             symbol:'PLTR'    },
-  'MSTR':    { search:'MicroStrategy',        symbol:'MSTR'    },
-  'IBM':     { search:'IBM',                  symbol:'IBM'     },
-  'GOOGL':   { search:'Alphabet',             symbol:'GOOGL'   },
-  'META':    { search:'Meta',                 symbol:'META'    },
-  'AMZN':    { search:'Amazon',               symbol:'AMZN'    },
-  'TSM':     { search:'TSMC',                 symbol:'TSM'     },
-  'RKLB':    { search:'Rocket Lab',           symbol:'RKLB'    },
-  'CRWV':    { search:'CoreWeave',            symbol:'CRWV'    },
-  'INTC':    { search:'Intel',                symbol:'INTC'    },
-  'VIK':     { search:'Viking Therapeutics',  symbol:'VKTX'   },
-  'QUBT':    { search:'Quantum Computing',    symbol:'QUBT'   },
-  'SOUN':    { search:'SoundHound',           symbol:'SOUN'   },
-  'AI':      { search:'C3.ai',               symbol:'AI'     },
-};
+// Mapa: symbol API → { names: nomes exactos no portfólio, prefix: prefixo para lotes IBM }
+// Para a IBM usamos prefix:'IBM' — aplica a todos os lotes IBM ESPP e IBM Div
+const TICKER_MAP = [
+  // XTB — nomes exactos
+  { symbol:'SXRV.DEX',  names:['NASDAQ 100']          },
+  { symbol:'SXR8.DEX',  names:['Core S&P 500']         },
+  { symbol:'NVDA',      names:['Nvidia']                },
+  { symbol:'AMD',       names:['AMD']                   },
+  { symbol:'AAPL',      names:['Apple']                 },
+  { symbol:'MSFT',      names:['Microsoft']             },
+  { symbol:'PLTR',      names:['Palantir']              },
+  { symbol:'MSTR',      names:['MicroStrategy']         },
+  { symbol:'GOOGL',     names:['Alphabet']              },
+  { symbol:'META',      names:['Meta']                  },
+  { symbol:'AMZN',      names:['Amazon']                },
+  { symbol:'TSM',       names:['TSMC']                  },
+  { symbol:'RKLB',      names:['Rocket Lab']            },
+  { symbol:'CRWV',      names:['CoreWeave']             },
+  { symbol:'INTC',      names:['Intel']                 },
+  { symbol:'VKTX',      names:['Viking Therapeutics']   },
+  { symbol:'QUBT',      names:['Quantum Computing']     },
+  { symbol:'SOUN',      names:['SoundHound']            },
+  { symbol:'AI',        names:['C3.ai']                 },
+  // IBM Computershare — todos os lotes têm nome a começar por 'IBM'
+  { symbol:'IBM',       prefix:'IBM'                    },
+];
 
 async function fetchPrice(symbol){
   const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${AV_KEY}`;
@@ -1184,15 +1186,14 @@ async function refreshPrices(){
   btn.textContent = '↻ A actualizar...';
   upd.textContent = '';
 
-  const symbols = Object.values(TICKER_MAP).map(t=>t.symbol);
   const prices  = {};
   let   updated = 0;
 
   // Alpha Vantage free: 25 req/day — processa sequencialmente com pequeno delay
-  for(const [key, meta] of Object.entries(TICKER_MAP)){
-    const price = await fetchPrice(meta.symbol);
+  for(const entry of TICKER_MAP){
+    const price = await fetchPrice(entry.symbol);
     if(price !== null){
-      prices[meta.search] = price;
+      prices[entry.symbol] = price;
       updated++;
     }
     await new Promise(r=>setTimeout(r,300)); // 300ms entre pedidos
@@ -1215,10 +1216,15 @@ function applyPricesToPortfolio(prices){
   Object.keys(portfolio).forEach(platId=>{
     portfolio[platId].forEach(pos=>{
       if(pos.sold) return;
-      const match = prices[pos.name];
-      if(match && match > 0){
-        pos.currentPrice = Math.round(match*100)/100;
-        changed = true;
+      for(const entry of TICKER_MAP){
+        let match = false;
+        if(entry.names && entry.names.includes(pos.name)) match = true;
+        if(entry.prefix && pos.name.startsWith(entry.prefix)) match = true;
+        if(match && prices[entry.symbol] > 0){
+          pos.currentPrice = Math.round(prices[entry.symbol]*100)/100;
+          changed = true;
+          break;
+        }
       }
     });
   });

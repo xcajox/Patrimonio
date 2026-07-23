@@ -41,6 +41,19 @@
     --text-dim:     #9A9A9A;
     --text-faint:   #666666;
   }
+
+  /* ── Modo claro ─────────────────────────────── */
+  body.light {
+    --bg:           #F5F5F5;
+    --bg-grad:      #EFEFEF;
+    --surface:      #FFFFFF;
+    --surface-2:    #F0F0F0;
+    --line:         rgb(0 0 0 / 8%);
+    --line-strong:  rgb(0 0 0 / 16%);
+    --text:         #1A1A1A;
+    --text-dim:     #555555;
+    --text-faint:   #999999;
+  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{ background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
@@ -239,6 +252,29 @@
   .icon-btn:hover{ color:var(--text); border-color:var(--gold); }
   .icon-btn.danger:hover{ color:var(--rust); border-color:var(--rust); }
   .custom-tag{ font-size:9px; color:var(--gold); border:1px solid var(--gold); border-radius:3px; padding:1px 5px; margin-left:8px; font-family:'IBM Plex Sans',sans-serif; vertical-align:1px; }
+
+  /* Header controls */
+  .header-controls{ display:flex; align-items:center; gap:14px; }
+  .header-right{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .theme-toggle{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:6px; padding:5px 10px; font-size:13px; cursor:pointer; line-height:1; }
+  #fxRate{ font-size:11px; color:var(--text-faint); white-space:nowrap; }
+
+  /* Alert bar */
+  .alert-bar{ display:flex; align-items:center; gap:10px; margin-bottom:20px; padding:14px 16px; background:var(--surface); border:1px solid var(--line); border-radius:8px; flex-wrap:wrap; }
+  .alert-bar-label{ font-size:12px; color:var(--text-dim); }
+  .alert-select{ background:var(--bg); border:1px solid var(--line-strong); border-radius:5px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 8px; outline:none; }
+  .alert-input{ background:var(--bg); border:1px solid var(--line-strong); border-radius:5px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 8px; outline:none; width:100px; }
+  .alert-unit{ font-size:12px; color:var(--text-dim); }
+  .alert-save-btn{ background:var(--gold); color:#0d1b2a; border:none; border-radius:5px; padding:5px 12px; font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .alert-clear-btn{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:5px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .alert-status{ font-size:12px; color:var(--text-faint); }
+
+  /* IBM history controls */
+  .ibm-history-controls{ display:flex; gap:10px; margin-top:12px; align-items:center; flex-wrap:wrap; }
+  .ibm-history-label{ font-size:12px; color:var(--text-dim); }
+  .ibm-history-input{ background:var(--bg); border:1px solid var(--line-strong); border-radius:5px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:12px; padding:5px 8px; outline:none; width:110px; }
+  .ibm-history-save{ background:var(--gold); color:#0d1b2a; border:none; border-radius:5px; padding:5px 14px; font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .ibm-history-clear{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:5px; padding:5px 10px; font-size:12px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
 </style>
 </head>
 <body>
@@ -268,7 +304,13 @@
       <div class="t2">Tracker pessoal</div>
     </div>
   </div>
-  <div class="asof">actualizado a<br><span class="num" id="asofDate">—</span></div>
+  <div class="header-controls">
+    <div class="asof">actualizado a<br><span class="num" id="asofDate">—</span></div>
+    <div class="header-right">
+      <button id="themeToggle" class="theme-toggle" title="Alternar modo claro/escuro">🌙</button>
+      <div id="fxRate"></div>
+    </div>
+  </div>
 </header>
 
 <section class="hero">
@@ -347,6 +389,15 @@
   </section>
 
   <section class="block">
+    <div class="block-eyebrow">Distribuição por plataforma</div>
+    <div class="block-title" style="margin-bottom:24px;">Composição do Portfólio</div>
+    <div class="comp-layout">
+      <div class="comp-donut"><canvas id="portfolioDonut"></canvas></div>
+      <div class="comp-legend" id="portfolioLegend"></div>
+    </div>
+  </section>
+
+  <section class="block">
     <div class="block-head">
       <div>
         <div class="block-eyebrow">XTB · AGEAS · IBM Computershare</div>
@@ -357,6 +408,19 @@
         <button class="price-refresh-btn" id="refreshPricesBtn">↻ Actualizar preços</button>
         <div class="price-last-update" id="priceLastUpdate"></div>
       </div>
+    </div>
+    <!-- Alerta de preço IBM -->
+    <div class="alert-bar">
+      <span class="alert-bar-label">🔔 Alerta IBM se preço</span>
+      <select id="alertDir" class="alert-select">
+        <option value="above">subir acima de</option>
+        <option value="below">descer abaixo de</option>
+      </select>
+      <input type="number" id="alertPrice" class="alert-input" step="0.01" placeholder="ex: 220.00">
+      <span class="alert-unit">USD</span>
+      <button id="alertSaveBtn" class="alert-save-btn">Activar</button>
+      <button id="alertClearBtn" class="alert-clear-btn">Limpar</button>
+      <span id="alertStatus" class="alert-status"></span>
     </div>
     <div id="portfolioContainer"></div>
   </section>
@@ -414,6 +478,19 @@
   </section>
 
   <section class="block">
+    <div class="block-eyebrow">IBM Computershare — cotação histórica</div>
+    <div class="block-title" style="margin-bottom:6px;">Histórico de Preços IBM</div>
+    <div class="block-desc" style="margin-bottom:20px;">Regista o preço IBM cada vez que actualizas. Permite ver a evolução da cotação ao longo do tempo.</div>
+    <div class="chart-card"><div class="chart-holder"><canvas id="ibmHistoryChart"></canvas></div></div>
+    <div class="ibm-history-controls">
+      <span class="ibm-history-label">Registar preço actual:</span>
+      <input type="number" id="ibmHistoryPrice" class="ibm-history-input" step="0.01" placeholder="ex: 205.77">
+      <button id="ibmHistorySave" class="ibm-history-save">Guardar</button>
+      <button id="ibmHistoryClear" class="ibm-history-clear">Limpar histórico</button>
+    </div>
+  </section>
+
+  <section class="block">
     <div class="block-head">
       <div>
         <div class="block-eyebrow">Todos os lançamentos</div>
@@ -422,6 +499,7 @@
       <div class="data-actions">
         <button class="action-btn" id="exportBtn">⬇ Exportar JSON</button>
         <button class="action-btn" id="importBtn">⬆ Importar JSON</button>
+        <button class="action-btn" id="pdfBtn">🖨 Exportar PDF</button>
         <button class="action-btn danger" id="clearBtn">🗑 Apagar tudo</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
       </div>
@@ -628,14 +706,21 @@ function render(){
 // ─────────────────────────────────────────────
 //  CHARTS
 // ─────────────────────────────────────────────
-function yearGridColor(){ return 'rgba(237,230,214,0.06)'; }
+// ─────────────────────────────────────────────
+//  COLOUR CONSTANTS  (keep in sync with CSS :root channel vars)
+// ─────────────────────────────────────────────
+const C_GOLD = '91,141,239';
+const C_MINT = '76,175,125';
+const C_RUST = '219,92,92';
+
+function yearGridColor(){ return 'rgba(255,255,255,0.06)'; }
 function janJulOnly(v){ const l=this.getLabelForValue(v)||''; return (l.startsWith('Jan')||l.startsWith('Jul'))?l:''; }
 
 function renderSpark(){
   if(!window.Chart)return;
   const ctx=document.getElementById('sparkChart'); if(sparkChart)sparkChart.destroy();
   const grad=ctx.getContext('2d').createLinearGradient(0,0,0,64);
-  grad.addColorStop(0,'rgba(91,141,239,0.35)'); grad.addColorStop(1,'rgba(91,141,239,0)');
+  grad.addColorStop(0,`rgba(${C_GOLD},0.35)`); grad.addColorStop(1,`rgba(${C_GOLD},0)`);
   sparkChart=new Chart(ctx,{ type:'line', data:{ labels:series.map(s=>s.label), datasets:[{ data:series.map(s=>s.total), borderColor:'#5B8DEF', borderWidth:1.5, pointRadius:0, fill:true, backgroundColor:grad, tension:0.3 }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{enabled:false} }, scales:{ x:{display:false}, y:{display:false} } }});
 }
 
@@ -646,7 +731,7 @@ function renderMainChart(){
   let datasets;
   if(chartMode==='total'){
     const grad=ctx.getContext('2d').createLinearGradient(0,0,0,340);
-    grad.addColorStop(0,'rgba(91,141,239,0.28)'); grad.addColorStop(1,'rgba(91,141,239,0)');
+    grad.addColorStop(0,`rgba(${C_GOLD},0.28)`); grad.addColorStop(1,`rgba(${C_GOLD},0)`);
     datasets=[{ label:'Património total', data:series.map(s=>s.total), borderColor:'#5B8DEF', backgroundColor:grad, fill:true, tension:0.25, borderWidth:2, pointRadius:0, pointHoverRadius:4 }];
   } else {
     datasets=CAT_ORDER.map(k=>({ label:COLOR_NAMES[k], data:series.map(s=>s[k]), backgroundColor:COLORS[k], borderWidth:0, fill:true, stack:'a', tension:0.2, pointRadius:0 }));
@@ -687,7 +772,7 @@ function renderProjection(cagr){
   for(let i=0;i<=hm;i++){ pLabels.push(i===0?last.label:labelFor(addMonths(last.date,i))); pVals.push(v); v*=(1+rate); }
   const hSlice=series.slice(-24); const hLabels=hSlice.map(s=>s.label); const hVals=hSlice.map(s=>s.total);
   const fullLabels=[...hLabels.slice(0,-1),...pLabels]; const histPart=[...hVals.slice(0,-1),last.total,...Array(hm).fill(null)]; const projPart=[...Array(hLabels.length-1).fill(null),...pVals];
-  if(window.Chart){ const ctx=document.getElementById('projChart'); if(projChart)projChart.destroy(); const gH=ctx.getContext('2d').createLinearGradient(0,0,0,340); gH.addColorStop(0,'rgba(91,141,239,0.25)'); gH.addColorStop(1,'rgba(91,141,239,0)'); const gP=ctx.getContext('2d').createLinearGradient(0,0,0,340); gP.addColorStop(0,'rgba(76,175,125,0.22)'); gP.addColorStop(1,'rgba(76,175,125,0)'); projChart=new Chart(ctx,{ type:'line', data:{ labels:fullLabels, datasets:[{ label:'Histórico', data:histPart, borderColor:'#5B8DEF', backgroundColor:gH, fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false },{ label:'Projecção', data:projPart, borderColor:'#4CAF7D', backgroundColor:gP, borderDash:[5,4], fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false }]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{ legend:{position:'top',align:'end',labels:{color:'#9A9A9A',font:{family:'IBM Plex Sans',size:11},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}, tooltip:{backgroundColor:'#212121',bodyFont:{family:'IBM Plex Mono',size:11},callbacks:{label:item=>item.parsed.y===null?undefined:' '+item.dataset.label+': '+fmtEUR(item.parsed.y,0)}}}, spaces:{ x:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Sans',size:10},maxRotation:0,autoSkip:false,callback:janJulOnly}}, y:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Mono',size:10},callback:v=>fmtEUR(v,0)}} }}}); }
+  if(window.Chart){ const ctx=document.getElementById('projChart'); if(projChart)projChart.destroy(); const gH=ctx.getContext('2d').createLinearGradient(0,0,0,340); gH.addColorStop(0,`rgba(${C_GOLD},0.25)`); gH.addColorStop(1,`rgba(${C_GOLD},0)`); const gP=ctx.getContext('2d').createLinearGradient(0,0,0,340); gP.addColorStop(0,`rgba(${C_MINT},0.22)`); gP.addColorStop(1,`rgba(${C_MINT},0)`); projChart=new Chart(ctx,{ type:'line', data:{ labels:fullLabels, datasets:[{ label:'Histórico', data:histPart, borderColor:'#5B8DEF', backgroundColor:gH, fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false },{ label:'Projecção', data:projPart, borderColor:'#4CAF7D', backgroundColor:gP, borderDash:[5,4], fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false }]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{ legend:{position:'top',align:'end',labels:{color:'#9A9A9A',font:{family:'IBM Plex Sans',size:11},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}, tooltip:{backgroundColor:'#212121',bodyFont:{family:'IBM Plex Mono',size:11},callbacks:{label:item=>item.parsed.y===null?undefined:' '+item.dataset.label+': '+fmtEUR(item.parsed.y,0)}}}, spaces:{ x:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Sans',size:10},maxRotation:0,autoSkip:false,callback:janJulOnly}}, y:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Mono',size:10},callback:v=>fmtEUR(v,0)}} }}}); }
   document.getElementById('projTable').innerHTML=targets.map(t=>{ const val=last.total*Math.pow(1+rate,t.months); return `<div class="proj-cell"><div class="pc-label">31 dez ${t.year}</div><div class="pc-val num">${fmtEUR(val,0)}</div><div class="pc-delta">${fmtPct(((val-last.total)/last.total)*100,0)}</div></div>`; }).join('');
 }
 
@@ -934,9 +1019,12 @@ function renderPortfolio(){
     const plClass = pl >= 0 ? 'pos' : 'neg';
     const cur = plat.currency;
 
-    // campo de preço rápido só para IBM Computershare
+    // campo de preço rápido + total USD só para IBM Computershare
     const firstLive = positions.find(p=>!p.sold);
     const quickPrice = firstLive ? firstLive.currentPrice : 0;
+    const ibmUsdTotal = plat.id === 'ibm_compute'
+      ? positions.filter(p=>!p.sold).reduce((a,p)=>(a+(p.qty||0)*(p.currentPrice||0)),0)
+      : 0;
     const quickPriceField = plat.id === 'ibm_compute' ? `
       <div class="portfolio-plat-stat" style="display:flex;align-items:center;gap:6px;margin-left:8px;">
         <input type="number" step="0.01" value="${quickPrice}" placeholder="Preço IBM"
@@ -944,7 +1032,9 @@ function renderPortfolio(){
           class="quick-price-input" data-plat="${plat.id}">
         <button style="background:var(--gold);color:#0d1b2a;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans',sans-serif;"
           class="quick-price-btn" data-plat="${plat.id}">Aplicar a todos</button>
-      </div>` : '';
+      </div>
+      <div class="portfolio-plat-stat">Total USD <span class="sv" id="ibmUsdTotal">$${ibmUsdTotal.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+      <div class="portfolio-plat-stat">Total EUR <span class="sv" id="ibmEurTotal">${window._fxRate ? fmtEUR(ibmUsdTotal * window._fxRate, 0) : '—'}</span></div>` : '';
 
     html += `<div class="portfolio-plat" data-plat="${plat.id}">
       <div class="portfolio-plat-head">
@@ -1120,13 +1210,15 @@ function loadChartJs(){
   document.getElementById('inMonth').value=defaultNext();
   renderPlatformForm(null);
   render();
+  // renderizar após Chart.js garantidamente carregado
+  renderPortfolioDonut();
+  renderIbmHistory();
   if(!window.Chart){ document.querySelector('.wrap').insertAdjacentHTML('afterbegin','<div style="background:#5B8DEF22;border:1px solid #5B8DEF;border-radius:8px;padding:14px 16px;margin:16px 0;font-size:13px;">Os gráficos não conseguiram carregar. Verifica a ligação à internet. Os valores e tabelas continuam corretos.</div>'); }
 })();
 
 // ─────────────────────────────────────────────
 //  PASSWORD
 // ─────────────────────────────────────────────
-const PASSWORD_HASH = '8e7c9e7e8b8e9f2d3a4b5c6d7e8f9a0b'; // hash de 'pedro2024'
 const SESSION_KEY   = 'patrimonio:auth';
 
 function hashStr(str){
@@ -1135,6 +1227,9 @@ function hashStr(str){
   for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619)>>>0; }
   return h.toString(16).padStart(8,'0');
 }
+
+// Pre-computed hash of 'pedro2024' — change both together if password changes
+const PASSWORD_HASH = hashStr('pedro2024');
 
 function checkAuth(){
   const saved = sessionStorage.getItem(SESSION_KEY);
@@ -1150,7 +1245,7 @@ function checkAuth(){
 function attemptLogin(){
   const val = document.getElementById('loginInput').value;
   const h   = hashStr(val);
-  if(h === hashStr('pedro2024')){
+  if(h === PASSWORD_HASH){
     sessionStorage.setItem(SESSION_KEY,'ok');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainContent').style.display = '';
@@ -1279,6 +1374,283 @@ function loadCachedPrices(){
 
 document.getElementById('refreshPricesBtn').addEventListener('click', refreshPrices);
 loadCachedPrices();
+
+// ─────────────────────────────────────────────
+//  MODO CLARO / ESCURO
+// ─────────────────────────────────────────────
+const THEME_KEY = 'patrimonio:theme';
+
+function applyTheme(theme){
+  if(theme === 'light'){
+    document.body.classList.add('light');
+    document.getElementById('themeToggle').textContent = '☀️';
+  } else {
+    document.body.classList.remove('light');
+    document.getElementById('themeToggle').textContent = '🌙';
+  }
+  lsSet(THEME_KEY, theme);
+}
+
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  const current = document.body.classList.contains('light') ? 'light' : 'dark';
+  applyTheme(current === 'light' ? 'dark' : 'light');
+});
+
+// carregar tema guardado
+applyTheme(lsGet(THEME_KEY) || 'dark');
+
+// ─────────────────────────────────────────────
+//  TAXA DE CÂMBIO USD/EUR
+// ─────────────────────────────────────────────
+const FX_KEY = 'patrimonio:fx';
+window._fxRate = 0;
+
+async function fetchFxRate(){
+  try{
+    const r = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d = await r.json();
+    if(d.rates && d.rates.EUR){
+      window._fxRate = d.rates.EUR;
+      lsSet(FX_KEY, JSON.stringify({ rate: window._fxRate, ts: Date.now() }));
+      updateFxDisplay();
+      renderPortfolio();      // actualiza totais EUR na IBM
+      renderPortfolioDonut(); // actualiza donut com novo câmbio
+    }
+  }catch(e){}
+}
+
+function updateFxDisplay(){
+  const el = document.getElementById('fxRate');
+  if(el && window._fxRate > 0){
+    el.textContent = `1 USD = ${window._fxRate.toFixed(4)} EUR`;
+  }
+}
+
+function loadFxRate(){
+  try{
+    const raw = lsGet(FX_KEY);
+    if(!raw) return fetchFxRate();
+    const { rate, ts } = JSON.parse(raw);
+    const age = (Date.now()-ts)/1000/60/60; // horas
+    window._fxRate = rate;
+    updateFxDisplay();
+    if(age > 4) fetchFxRate(); // actualiza se tiver mais de 4h
+  }catch(e){ fetchFxRate(); }
+}
+
+loadFxRate();
+
+// ─────────────────────────────────────────────
+//  GRÁFICO DE PIZZA — PORTFÓLIO POR PLATAFORMA
+// ─────────────────────────────────────────────
+let portfolioDonutChart = null;
+
+function renderPortfolioDonut(){
+  if(!window.Chart) return;
+  const ctx = document.getElementById('portfolioDonut');
+  if(!ctx) return;
+  const fx = window._fxRate || 1;
+  const colors = ['#5B8DEF','#4CAF7D','#DB5C5C'];
+  const platValues = PORTFOLIO_PLATFORMS.map((plat,i)=>{
+    const positions = portfolio[plat.id] || [];
+    let val = 0;
+    positions.forEach(p=>{
+      if(p.sold) return;
+      const v = (p.qty||0)*(p.currentPrice||0);
+      val += plat.currency==='USD' ? v*fx : v;
+    });
+    return { name:plat.name, value:Math.round(val*100)/100, color:colors[i] };
+  });
+  const total = platValues.reduce((a,p)=>a+p.value,0);
+  if(portfolioDonutChart) portfolioDonutChart.destroy();
+  portfolioDonutChart = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:platValues.map(p=>p.name),
+      datasets:[{ data:platValues.map(p=>p.value), backgroundColor:colors, borderColor:'#1B1B1B', borderWidth:3 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'72%',
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ backgroundColor:'#212121', bodyFont:{family:'IBM Plex Mono'},
+          callbacks:{ label:item=>` ${item.label}: ${fmtEUR(item.parsed,0)} (${total>0?(item.parsed/total*100).toFixed(1):'0'}%)` }
+        }
+      }
+    }
+  });
+  const legend = document.getElementById('portfolioLegend');
+  if(legend){
+    legend.innerHTML = platValues.map(p=>{
+      const pct = total>0 ? (p.value/total*100).toFixed(1) : '0.0';
+      return `<div class="comp-item">
+        <div class="comp-dot" style="background:${p.color}"></div>
+        <div class="comp-name">${p.name}</div>
+        <div class="comp-pct">${pct}%</div>
+        <div class="comp-val">${fmtEUR(p.value,0)}</div>
+        <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${total>0?p.value/total*100:0}%;background:${p.color}"></div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─────────────────────────────────────────────
+//  ALERTA DE PREÇO IBM
+// ─────────────────────────────────────────────
+const ALERT_KEY = 'patrimonio:ibm_alert';
+
+function loadAlert(){
+  try{
+    const raw = lsGet(ALERT_KEY);
+    if(!raw) return;
+    const { dir, price } = JSON.parse(raw);
+    document.getElementById('alertDir').value   = dir;
+    document.getElementById('alertPrice').value = price;
+    updateAlertStatus(dir, price);
+  }catch(e){}
+}
+
+function updateAlertStatus(dir, price){
+  const el = document.getElementById('alertStatus');
+  if(!el || !price){ if(el) el.textContent=''; return; }
+  el.textContent = `✅ Activo — alertar se IBM ${dir==='above'?'subir acima de':'descer abaixo de'} $${price}`;
+  el.style.color = 'var(--mint)';
+}
+
+function checkAlert(currentPrice){
+  try{
+    const raw = lsGet(ALERT_KEY);
+    if(!raw || !currentPrice) return;
+    const { dir, price } = JSON.parse(raw);
+    const triggered = dir==='above' ? currentPrice >= price : currentPrice <= price;
+    if(!triggered) return;
+    const msg = `IBM está a $${currentPrice.toFixed(2)} — ${dir==='above'?'acima':'abaixo'} do teu alerta de $${price}`;
+    if('Notification' in window && Notification.permission==='granted'){
+      new Notification('IBM Price Alert 🔔', { body:msg });
+    } else {
+      alert('🔔 IBM Price Alert!\n'+msg);
+    }
+  }catch(e){}
+}
+
+document.getElementById('alertSaveBtn').addEventListener('click',()=>{
+  const dir   = document.getElementById('alertDir').value;
+  const price = parseFloat(document.getElementById('alertPrice').value);
+  if(!price||price<=0){ alert('Introduz um preço válido.'); return; }
+  lsSet(ALERT_KEY, JSON.stringify({ dir, price }));
+  updateAlertStatus(dir, price);
+  if('Notification' in window && Notification.permission==='default') Notification.requestPermission();
+});
+
+document.getElementById('alertClearBtn').addEventListener('click',()=>{
+  localStorage.removeItem(ALERT_KEY);
+  document.getElementById('alertPrice').value='';
+  document.getElementById('alertStatus').textContent='';
+});
+
+loadAlert();
+
+
+// ─────────────────────────────────────────────
+//  HISTÓRICO DE PREÇOS IBM
+// ─────────────────────────────────────────────
+const IBM_HISTORY_KEY = 'patrimonio:ibm_history';
+let ibmHistoryChart   = null;
+
+function ibmHistoryLoad(){ try{ return JSON.parse(lsGet(IBM_HISTORY_KEY)||'[]'); }catch(e){ return []; } }
+function ibmHistorySave(data){ lsSet(IBM_HISTORY_KEY, JSON.stringify(data)); }
+
+function renderIbmHistory(){
+  if(!window.Chart) return;
+  const ctx = document.getElementById('ibmHistoryChart');
+  if(!ctx) return;
+  const data = ibmHistoryLoad();
+  if(ibmHistoryChart) ibmHistoryChart.destroy();
+  ibmHistoryChart = new Chart(ctx,{
+    type:'line',
+    data:{
+      labels: data.map(d=>d.date),
+      datasets:[{
+        label:'IBM (USD)',
+        data: data.map(d=>d.price),
+        borderColor:'#5B8DEF',
+        backgroundColor:`rgba(${C_GOLD},0.08)`,
+        borderWidth:2,
+        pointRadius:4,
+        pointBackgroundColor:'#5B8DEF',
+        tension:0.3,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ backgroundColor:'#212121', bodyFont:{family:'IBM Plex Mono'},
+          callbacks:{ label: item=>`  $${item.parsed.y.toFixed(2)}` }
+        }
+      },
+      scales:{
+        x:{ ticks:{ color:'#666', font:{size:11} }, grid:{ color:'rgba(255,255,255,0.06)' } },
+        y:{ ticks:{ color:'#666', font:{family:'IBM Plex Mono',size:11}, callback:v=>'$'+v },
+            grid:{ color:'rgba(255,255,255,0.06)' } }
+      }
+    }
+  });
+}
+
+document.getElementById('ibmHistorySave').addEventListener('click',()=>{
+  const price = parseFloat(document.getElementById('ibmHistoryPrice').value);
+  if(!price||price<=0){ alert('Introduz um preço válido.'); return; }
+  const data  = ibmHistoryLoad();
+  const today = new Date().toLocaleDateString('pt-PT',{day:'2-digit',month:'short',year:'numeric'});
+  // substitui se já existe entrada para hoje
+  const idx = data.findIndex(d=>d.date===today);
+  if(idx>=0) data[idx].price = price;
+  else data.push({ date:today, price });
+  ibmHistorySave(data);
+  renderIbmHistory();
+  document.getElementById('ibmHistoryPrice').value='';
+});
+
+document.getElementById('ibmHistoryClear').addEventListener('click',()=>{
+  if(!confirm('Apagar todo o histórico de preços IBM?')) return;
+  ibmHistorySave([]);
+  renderIbmHistory();
+});
+
+// auto-preenche o campo com o preço actual IBM do portfólio
+const ibmLive = (portfolio['ibm_compute']||[]).find(p=>!p.sold);
+if(ibmLive) document.getElementById('ibmHistoryPrice').value = ibmLive.currentPrice;
+
+
+// ─────────────────────────────────────────────
+//  EXPORT PDF
+// ─────────────────────────────────────────────
+document.getElementById('pdfBtn').addEventListener('click',()=>{
+  // esconde elementos desnecessários para impressão e usa window.print()
+  const style = document.createElement('style');
+  style.id    = 'print-override';
+  style.textContent = `
+    @media print {
+      #loginScreen, #refreshPricesBtn, #priceLastUpdate,
+      .data-actions, .plat-remove, .plat-add, .portfolio-add-btn,
+      .portfolio-row-actions, .save-btn, .scenario-row,
+      #themeToggle, .quick-price-input, .quick-price-btn,
+      #alertSaveBtn, #alertClearBtn, #ibmHistorySave, #ibmHistoryClear,
+      #ibmHistoryPrice, footer { display:none !important; }
+      body { background:#fff !important; color:#000 !important; }
+      .wrap { max-width:100% !important; padding:0 16px !important; }
+      .chart-card { border:1px solid #ccc !important; }
+      section.block { page-break-inside:avoid; padding:24px 0 !important; }
+      .hero-figure { font-size:48px !important; }
+      a { color:#000 !important; }
+    }
+  `;
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(()=>{ const s=document.getElementById('print-override'); if(s) s.remove(); }, 1000);
+});
 </script>
 </body>
 </html>

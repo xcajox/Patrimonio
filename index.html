@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Património — Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ── Surfaces ───────────────────────────────── */
+    --bg:           #121212;
+    --bg-grad:      #0F0F0F;
+    --surface:      #1B1B1B;
+    --surface-2:    #212121;
+
+    /* ── Lines / borders ───────────────────────── */
+    --line:         rgb(255 255 255 / 8%);
+    --line-strong:  rgb(255 255 255 / 16%);
+
+    /* ── Accent colours (channels + composed) ──── */
+    --gold-ch:      91 141 239;
+    --gold:         rgb(var(--gold-ch));
+    --gold-soft:    rgb(var(--gold-ch) / 14%);
+
+    --mint-ch:      76 175 125;
+    --mint:         rgb(var(--mint-ch));
+    --mint-soft:    rgb(var(--mint-ch) / 14%);
+
+    --rust-ch:      219 92 92;
+    --rust:         rgb(var(--rust-ch));
+    --rust-soft:    rgb(var(--rust-ch) / 14%);
+
+    /* ── Text ───────────────────────────────────── */
+    --text:         #EDEDED;
+    --text-dim:     #9A9A9A;
+    --text-faint:   #666666;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{ background:var(--bg); color:var(--text); font-family:'IBM Plex Sans',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh; }
+  .num{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:0 28px 100px; }
+
+  /* Header */
+  header{ padding:36px 0 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand-mark{ width:34px; height:34px; border:1px solid var(--gold); border-radius:3px; display:flex; align-items:center; justify-content:center; color:var(--gold); font-family:'Fraunces',serif; font-size:17px; font-weight:500; flex-shrink:0; }
+  .brand-text .t1{ font-family:'Fraunces',serif; font-size:19px; letter-spacing:0.02em; }
+  .brand-text .t2{ font-size:11px; color:var(--text-faint); letter-spacing:0.08em; text-transform:uppercase; margin-top:1px; }
+  .asof{ font-size:12px; color:var(--text-dim); text-align:right; }
+  .asof .num{ color:var(--text); font-size:13px; }
+
+  /* Hero */
+  .hero{ padding:56px 0 40px; border-bottom:1px solid var(--line); }
+  .hero-label{ font-size:12px; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; }
+  .hero-figure{ font-family:'Fraunces',serif; font-weight:400; font-size:clamp(48px,8vw,88px); line-height:1; letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
+  .hero-sub{ display:flex; gap:28px; margin-top:22px; flex-wrap:wrap; }
+  .hero-stat{ font-size:13px; color:var(--text-dim); }
+  .hero-stat .val{ color:var(--text); font-family:'IBM Plex Mono',monospace; margin-left:6px; }
+  .hero-stat .pos{ color:var(--mint); }
+  .hero-stat .neg{ color:var(--rust); }
+  .spark{ margin-top:28px; height:64px; }
+
+  /* Sections */
+  section.block{ padding:48px 0; border-bottom:1px solid var(--line); }
+  section.block:last-of-type{ border-bottom:none; }
+  .block-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:10px; }
+  .block-title{ font-family:'Fraunces',serif; font-size:24px; font-weight:400; }
+  .block-eyebrow{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px; }
+  .block-desc{ font-size:13px; color:var(--text-dim); max-width:560px; line-height:1.55; }
+
+  .toggle-group{ display:flex; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:3px; }
+  .toggle-btn{ font-family:'IBM Plex Sans',sans-serif; font-size:12px; color:var(--text-dim); background:transparent; border:none; padding:7px 14px; border-radius:4px; cursor:pointer; transition:all .15s ease; letter-spacing:0.02em; }
+  .toggle-btn.active{ background:var(--gold-soft); color:var(--gold); }
+  .toggle-btn:hover:not(.active){ color:var(--text); }
+
+  .chart-card{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:24px 20px 12px; }
+  .chart-holder{ position:relative; height:340px; }
+
+  /* Ledger */
+  .ledger{ border-top:1px solid var(--line-strong); }
+  .ledger-row{ display:grid; grid-template-columns:90px 1fr auto auto; align-items:baseline; padding:14px 4px; border-bottom:1px dashed var(--line); gap:14px; }
+  .ledger-row.head{ font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-faint); border-bottom:1px solid var(--line-strong); padding-bottom:10px; }
+  .ledger-year{ font-family:'Fraunces',serif; font-size:20px; color:var(--gold); }
+  .ledger-leader{ border-bottom:1px dotted var(--line-strong); align-self:end; height:1px; margin-bottom:6px; }
+  .ledger-total{ font-family:'IBM Plex Mono',monospace; font-size:17px; text-align:right; min-width:130px; }
+  .ledger-delta{ font-family:'IBM Plex Mono',monospace; font-size:12px; text-align:right; min-width:80px; }
+  .ledger-delta.pos{ color:var(--mint); }
+  .ledger-delta.neg{ color:var(--rust); }
+
+  /* Composition */
+  .comp-layout{ display:grid; grid-template-columns:260px 1fr; gap:36px; align-items:center; }
+  @media(max-width:680px){ .comp-layout{ grid-template-columns:1fr; } }
+  .comp-donut{ position:relative; height:260px; }
+  .comp-legend{ display:flex; flex-direction:column; gap:14px; }
+  .comp-item{ display:grid; grid-template-columns:12px 1fr auto auto; align-items:center; gap:10px; }
+  .comp-dot{ width:10px; height:10px; border-radius:50%; }
+  .comp-name{ font-size:13.5px; }
+  .comp-pct{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-dim); }
+  .comp-val{ font-family:'IBM Plex Mono',monospace; font-size:13px; min-width:92px; text-align:right; }
+  .comp-bar-bg{ grid-column:1/-1; height:4px; background:var(--line); border-radius:2px; overflow:hidden; margin-top:2px; }
+  .comp-bar-fill{ height:100%; border-radius:2px; }
+
+  /* Projections */
+  .scenario-row{ display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+  .scenario-btn{ flex:1; min-width:140px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:14px 16px; cursor:pointer; text-align:left; transition:all .15s ease; }
+  .scenario-btn.active{ border-color:var(--gold); background:var(--gold-soft); }
+  .scenario-btn .sc-title{ font-size:12.5px; color:var(--text); font-weight:500; }
+  .scenario-btn .sc-rate{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .scenario-btn.active .sc-rate{ color:var(--gold); }
+  .proj-table{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-top:20px; }
+  .proj-cell{ background:var(--surface); padding:18px 16px; }
+  .proj-cell .pc-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); }
+  .proj-cell .pc-val{ font-family:'Fraunces',serif; font-size:26px; margin-top:8px; }
+  .proj-cell .pc-delta{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--mint); margin-top:4px; }
+
+  /* Update form */
+  .update-card{ background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:24px; }
+  .field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); margin-bottom:7px; }
+  .field input{ width:100%; background:var(--bg); border:1px solid var(--line-strong); border-radius:6px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:14px; padding:9px 10px; outline:none; transition:border-color .15s ease; }
+  .field input:focus{ border-color:var(--gold); }
+  .form-foot{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+
+  .plat-group{ margin-bottom:22px; }
+  .plat-group-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .plat-group-title{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); display:flex; align-items:center; gap:8px; }
+  .plat-group-title .swatch{ width:8px; height:8px; border-radius:50%; }
+  .plat-group-total{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-dim); }
+  .plat-rows{ display:flex; flex-direction:column; gap:8px; }
+  .plat-row{ display:grid; grid-template-columns:1fr 150px auto; align-items:center; gap:10px; }
+  .plat-row input.plat-name{ background:transparent; border:none; border-bottom:1px dashed var(--line-strong); color:var(--text-dim); font-family:'IBM Plex Sans',sans-serif; font-size:13px; padding:6px 2px; outline:none; }
+  .plat-row input.plat-name:focus{ color:var(--text); border-color:var(--gold); }
+  .plat-row input.plat-value{ background:var(--bg); border:1px solid var(--line-strong); border-radius:6px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:13px; padding:8px 10px; outline:none; text-align:right; }
+  .plat-row input.plat-value:focus{ border-color:var(--gold); }
+  .plat-remove{ background:transparent; border:none; color:var(--text-faint); cursor:pointer; font-size:15px; padding:4px 6px; line-height:1; }
+  .plat-remove:hover{ color:var(--rust); }
+  .plat-add{ background:transparent; border:1px dashed var(--line-strong); color:var(--text-dim); border-radius:6px; padding:7px 12px; font-size:12px; cursor:pointer; margin-top:8px; font-family:'IBM Plex Sans',sans-serif; }
+  .plat-add:hover{ color:var(--gold); border-color:var(--gold); }
+  .save-btn{ background:var(--gold); color:#0d1b2a; border:none; border-radius:6px; padding:11px 22px; font-family:'IBM Plex Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; letter-spacing:0.01em; }
+  .save-btn:hover{ filter:brightness(1.08); }
+  .form-status{ font-size:12px; color:var(--text-dim); }
+  .form-status.ok{ color:var(--mint); }
+  .form-total-preview{ font-size:12px; color:var(--text-dim); margin-top:4px; }
+  .form-total-preview .num{ color:var(--gold); }
+
+  /* Portfolio de Acções */
+  .portfolio-plat{ margin-bottom:32px; }
+  .portfolio-plat-head{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--surface-2); border:1px solid var(--line); border-radius:8px 8px 0 0; gap:10px; flex-wrap:wrap; }
+  .portfolio-plat-name{ font-family:'Fraunces',serif; font-size:17px; }
+  .portfolio-plat-summary{ display:flex; gap:20px; flex-wrap:wrap; }
+  .portfolio-plat-stat{ font-size:12px; color:var(--text-dim); }
+  .portfolio-plat-stat .sv{ font-family:'IBM Plex Mono',monospace; color:var(--text); margin-left:4px; }
+  .portfolio-plat-stat .sv.pos{ color:var(--mint); }
+  .portfolio-plat-stat .sv.neg{ color:var(--rust); }
+  .portfolio-table{ width:100%; border-collapse:collapse; font-size:13px; border:1px solid var(--line); border-top:none; border-radius:0 0 8px 8px; overflow:hidden; }
+  .portfolio-table th{ font-family:'IBM Plex Sans',sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:500; padding:10px 14px; border-bottom:1px solid var(--line-strong); background:var(--surface); text-align:right; }
+  .portfolio-table th:first-child{ text-align:left; }
+  .portfolio-table td{ padding:11px 14px; border-bottom:1px solid var(--line); text-align:right; font-family:'IBM Plex Mono',monospace; white-space:nowrap; }
+  .portfolio-table td:first-child{ text-align:left; font-family:'IBM Plex Sans',sans-serif; }
+  .portfolio-table tr:last-child td{ border-bottom:none; }
+  .portfolio-table tr:hover td{ background:rgb(255 255 255 / 2%); }
+  .portfolio-table td.pos{ color:var(--mint); }
+  .portfolio-table td.neg{ color:var(--rust); }
+  .portfolio-table .td-name{ font-size:13.5px; }
+  .portfolio-table .td-currency{ font-size:10px; color:var(--text-faint); margin-left:4px; vertical-align:1px; }
+  .portfolio-add-btn{ background:transparent; border:1px dashed var(--line-strong); color:var(--text-dim); border-radius:0 0 8px 8px; padding:9px 14px; font-size:12px; cursor:pointer; width:100%; font-family:'IBM Plex Sans',sans-serif; text-align:left; margin-top:-1px; }
+  .portfolio-add-btn:hover{ color:var(--gold); border-color:var(--gold); }
+  .portfolio-edit-row td{ padding:6px 8px; background:var(--surface-2); }
+  .portfolio-edit-row input{ background:var(--bg); border:1px solid var(--line-strong); border-radius:5px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:12px; padding:6px 8px; outline:none; width:100%; }
+  .portfolio-edit-row input:focus{ border-color:var(--gold); }
+  .portfolio-edit-row .pe-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .pe-save{ background:var(--gold); color:#0d1b2a; border:none; border-radius:5px; padding:5px 12px; font-size:11px; font-weight:600; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .pe-cancel{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:5px; padding:5px 10px; font-size:11px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .portfolio-row-actions{ display:flex; gap:5px; justify-content:flex-end; }
+
+  /* Export / Import */
+  .data-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+  .action-btn{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:6px; padding:8px 16px; font-size:12px; font-family:'IBM Plex Sans',sans-serif; cursor:pointer; transition:all .15s; }
+  .action-btn:hover{ color:var(--gold); border-color:var(--gold); }
+  .action-btn.danger:hover{ color:var(--rust); border-color:var(--rust); }
+
+  /* P/L Realizado */
+  .realised-summary{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:28px; }
+  @media(max-width:600px){ .realised-summary{ grid-template-columns:1fr; } }
+  .realised-cell{ background:var(--surface); padding:18px 20px; }
+  .realised-cell .rc-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); }
+  .realised-cell .rc-val{ font-family:'Fraunces',serif; font-size:28px; margin-top:6px; }
+  .realised-cell .rc-val.pos{ color:var(--mint); }
+  .realised-cell .rc-val.neg{ color:var(--rust); }
+  .realised-cell .rc-sub{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .realised-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .realised-table th{ font-family:'IBM Plex Sans',sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:500; padding:10px 14px; border-bottom:1px solid var(--line-strong); background:var(--surface); text-align:right; }
+  .realised-table th:first-child{ text-align:left; }
+  .realised-table td{ padding:10px 14px; border-bottom:1px solid var(--line); text-align:right; font-family:'IBM Plex Mono',monospace; font-size:13px; white-space:nowrap; }
+  .realised-table td:first-child{ text-align:left; font-family:'IBM Plex Sans',sans-serif; font-size:13.5px; }
+  .realised-table tr:last-child td{ border-bottom:none; }
+  .realised-table tr:hover td{ background:rgb(255 255 255 / 2%); }
+  .realised-table td.pos{ color:var(--mint); }
+  .realised-table td.neg{ color:var(--rust); }
+  .realised-bar-bg{ height:4px; background:var(--line); border-radius:2px; overflow:hidden; margin-top:6px; }
+  .realised-bar-fill{ height:100%; border-radius:2px; }
+
+  footer{ padding:34px 0 10px; text-align:center; font-size:11px; color:var(--text-faint); }
+
+  /* History table */
+  #historyTable{ font-family:'IBM Plex Mono',monospace; }
+  #historyTable th{ text-align:right; font-family:'IBM Plex Sans',sans-serif; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); font-weight:500; padding:12px 14px; border-bottom:1px solid var(--line-strong); background:var(--surface); }
+  #historyTable th:first-child, #historyTable td:first-child{ text-align:left; }
+  #historyTable td{ text-align:right; padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  #historyTable tr:hover td{ background:rgba(255,255,255,0.02); }
+  #historyTable .row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+  .icon-btn{ background:transparent; border:1px solid var(--line-strong); color:var(--text-dim); border-radius:5px; padding:4px 9px; font-size:11px; cursor:pointer; font-family:'IBM Plex Sans',sans-serif; }
+  .icon-btn:hover{ color:var(--text); border-color:var(--gold); }
+  .icon-btn.danger:hover{ color:var(--rust); border-color:var(--rust); }
+  .custom-tag{ font-size:9px; color:var(--gold); border:1px solid var(--gold); border-radius:3px; padding:1px 5px; margin-left:8px; font-family:'IBM Plex Sans',sans-serif; vertical-align:1px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">P</div>
+    <div class="brand-text">
+      <div class="t1">Património</div>
+      <div class="t2">Tracker pessoal</div>
+    </div>
+  </div>
+  <div class="asof">actualizado a<br><span class="num" id="asofDate">—</span></div>
+</header>
+
+<section class="hero">
+  <div class="hero-label">Património líquido total</div>
+  <div class="hero-figure num" id="heroTotal">€ 0</div>
+  <div class="hero-sub">
+    <div class="hero-stat">vs. mês anterior <span class="val" id="deltaMonth">—</span></div>
+    <div class="hero-stat">vs. primeiro mês <span class="val" id="deltaAll">—</span></div>
+    <div class="hero-stat">crescimento médio / mês <span class="val" id="cagrMonthly">—</span></div>
+  </div>
+  <div class="spark"><canvas id="sparkChart"></canvas></div>
+  <div id="emptyState" style="display:none; margin-top:20px; padding:16px 18px; background:var(--surface); border:1px solid var(--line); border-radius:10px; font-size:13px; color:var(--text-dim);">
+    Ainda não tens nenhum mês registado. Preenche o formulário "Actualizar Património" abaixo para começares — os gráficos, o histórico e as projecções aparecem automaticamente a partir do primeiro mês.
+  </div>
+</section>
+
+<section class="block">
+  <div class="block-eyebrow">Novo lançamento</div>
+  <div class="block-title" style="margin-bottom:6px;">Actualizar Património</div>
+  <div class="block-desc" style="margin-bottom:20px;">Um valor por plataforma, tal como numa folha de cálculo. Fica guardado no browser mesmo que voltes noutro dia.</div>
+  <div class="update-card">
+    <div class="field" style="max-width:220px; margin-bottom:20px;">
+      <label>Mês</label>
+      <input type="month" id="inMonth">
+    </div>
+    <div id="platformGroups"></div>
+    <div class="form-foot" style="margin-top:8px;">
+      <div>
+        <div class="form-status" id="formStatus">Preenche os valores para veres o novo total.</div>
+        <div class="form-total-preview">Total do mês: <span class="num" id="formPreview">€ 0</span></div>
+      </div>
+      <button class="save-btn" id="saveBtn">Guardar mês</button>
+    </div>
+  </div>
+</section>
+
+<div id="dataSections" style="display:none;">
+
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <div class="block-eyebrow" id="evolutionEyebrow">Desde o primeiro mês</div>
+        <div class="block-title">Evolução do Património</div>
+      </div>
+      <div class="toggle-group" id="chartToggle">
+        <button class="toggle-btn active" data-mode="total">Total</button>
+        <button class="toggle-btn" data-mode="stacked">Por categoria</button>
+      </div>
+    </div>
+    <div class="chart-card"><div class="chart-holder"><canvas id="mainChart"></canvas></div></div>
+  </section>
+
+  <section class="block">
+    <div class="block-eyebrow">Fecho de ano</div>
+    <div class="block-title" style="margin-bottom:20px;">Networth</div>
+    <div class="ledger" id="ledgerTable"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-eyebrow" id="compositionEyebrow">Mês mais recente</div>
+    <div class="block-title" style="margin-bottom:24px;">Composição Actual</div>
+    <div class="comp-layout">
+      <div class="comp-donut"><canvas id="donutChart"></canvas></div>
+      <div class="comp-legend" id="compLegend"></div>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-eyebrow">Baseado na tua taxa de crescimento histórica</div>
+    <div class="block-title" style="margin-bottom:6px;">Projecções</div>
+    <div class="block-desc" style="margin-bottom:20px;">Extrapolação simples da tua taxa de crescimento histórica composta mensal. Atenção: essa taxa inclui todo o dinheiro que foste poupando e investindo, não só retorno de investimento. Não é aconselhamento financeiro. Precisa de pelo menos 2 meses para calcular.</div>
+    <div class="scenario-row" id="scenarioRow"></div>
+    <div id="projPlaceholder" style="display:none; padding:20px; font-size:13px; color:var(--text-dim); background:var(--surface); border:1px solid var(--line); border-radius:10px;">Adiciona pelo menos 2 meses para veres projecções.</div>
+    <div class="chart-card" id="projChartCard"><div class="chart-holder"><canvas id="projChart"></canvas></div></div>
+    <div class="proj-table" id="projTable"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-eyebrow">XTB · AGEAS · IBM Computershare</div>
+    <div class="block-title" style="margin-bottom:6px;">Portfólio de Acções</div>
+    <div class="block-desc" style="margin-bottom:24px;">Regista as tuas posições por plataforma. Introduz o preço actual para veres o lucro/perda em tempo real. Tudo guardado no browser.</div>
+    <div id="portfolioContainer"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-eyebrow">XTB · IBM Computershare — posições já encerradas</div>
+    <div class="block-title" style="margin-bottom:6px;">P/L Realizado</div>
+    <div class="block-desc" style="margin-bottom:24px;">Ganhos e perdas efectivamente realizados — posições que já foram abertas e fechadas. Fontes: extracto XTB 01/01/2006–23/07/2026 + venda IBM Computershare 27/04/2026.</div>
+
+    <div class="realised-summary">
+      <div class="realised-cell">
+        <div class="rc-label">P/L Líquido Realizado</div>
+        <div class="rc-val pos">+1 367,66 €</div>
+        <div class="rc-sub">38 operações encerradas</div>
+      </div>
+      <div class="realised-cell">
+        <div class="rc-label">Ganhos Realizados</div>
+        <div class="rc-val pos">+1 396,62 €</div>
+        <div class="rc-sub">30 operações positivas</div>
+      </div>
+      <div class="realised-cell">
+        <div class="rc-label">Perdas Realizadas</div>
+        <div class="rc-val neg">−28,96 €</div>
+        <div class="rc-sub">8 operações negativas · Win rate 79%</div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="padding:0; overflow-x:auto;">
+      <table class="realised-table">
+        <thead><tr>
+          <th>Activo</th>
+          <th>P/L €</th>
+          <th>% do total</th>
+          <th style="min-width:120px;">Contribuição</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>SXR8.DE — Core S&amp;P 500</td><td class="pos">+357,12 €</td><td class="pos">26,1%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:100%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>SXRV.DE — NASDAQ 100</td><td class="pos">+287,13 €</td><td class="pos">21,0%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:80%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>IBM.US — IBM Computershare</td><td class="pos">+495,71 €</td><td class="pos">36,2%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:100%;background:var(--gold)"></div></div></td></tr>
+          <tr><td>NVDA.US — Nvidia</td><td class="pos">+99,82 €</td><td class="pos">7,3%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:28%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>GOOGL.US — Alphabet</td><td class="pos">+47,46 €</td><td class="pos">3,5%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:13%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>TSM.US — TSMC</td><td class="pos">+38,17 €</td><td class="pos">2,8%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:11%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>META.US — Meta</td><td class="pos">+34,13 €</td><td class="pos">2,5%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:10%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>APC.DE — Airbus</td><td class="pos">+19,82 €</td><td class="pos">1,4%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:6%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>TSLA.DE — Tesla</td><td class="pos">+9,97 €</td><td class="pos">0,7%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:3%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>AMZN.US — Amazon</td><td class="pos">+7,29 €</td><td class="pos">0,5%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:2%;background:var(--mint)"></div></div></td></tr>
+          <tr><td>AAPL.US — Apple</td><td class="neg">−1,34 €</td><td class="neg">−0,1%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:0.4%;background:var(--rust)"></div></div></td></tr>
+          <tr><td>C.US — Citigroup</td><td class="neg">−3,87 €</td><td class="neg">−0,3%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:1%;background:var(--rust)"></div></div></td></tr>
+          <tr><td>V.US — Visa</td><td class="neg">−4,32 €</td><td class="neg">−0,3%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:1.2%;background:var(--rust)"></div></div></td></tr>
+          <tr><td>MSTR.US — MicroStrategy</td><td class="neg">−5,65 €</td><td class="neg">−0,4%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:1.6%;background:var(--rust)"></div></div></td></tr>
+          <tr><td>AMD.DE — AMD</td><td class="neg">−13,78 €</td><td class="neg">−1,0%</td><td><div class="realised-bar-bg"><div class="realised-bar-fill" style="width:3.9%;background:var(--rust)"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block">
+    <div class="block-head">
+      <div>
+        <div class="block-eyebrow">Todos os lançamentos</div>
+        <div class="block-title">Histórico Completo</div>
+      </div>
+      <div class="data-actions">
+        <button class="action-btn" id="exportBtn">⬇ Exportar JSON</button>
+        <button class="action-btn" id="importBtn">⬆ Importar JSON</button>
+        <button class="action-btn danger" id="clearBtn">🗑 Apagar tudo</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+      </div>
+    </div>
+    <div class="chart-card" style="padding:0; overflow-x:auto;">
+      <table id="historyTable" style="width:100%; border-collapse:collapse; font-size:12.5px;"></table>
+    </div>
+  </section>
+
+</div>
+
+<footer>os teus dados ficam guardados no localStorage deste browser · <span style="color:var(--gold);">Pedro Carita</span></footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────
+const STORAGE_KEY      = 'patrimonio:entries';
+const CATS_KEY         = 'patrimonio:platform_cats';
+const PORTFOLIO_KEY    = 'patrimonio:portfolio';
+const COLORS        = { cash:'#9A9A9A', invest:'#5B8DEF', crypto:'#4CAF7D', p2p:'#DB5C5C' };
+const COLOR_NAMES   = { cash:'Liquidez', invest:'Investimentos', crypto:'Crypto', p2p:'P2P / Alternativos' };
+const CAT_ORDER     = ['cash','invest','crypto','p2p'];
+const DEFAULT_PLATS = { cash:['Conta à ordem','Fundo de Emergência'], invest:['Corretora'], crypto:['Carteira crypto'], p2p:['P2P'] };
+const KNOWN_CATS    = {
+  'Conta à ordem':'cash','Fundo de Emergência':'cash','Revolut':'cash','BiG':'cash',
+  'DeGiro':'invest','XTB':'invest','Trade Republic':'invest','Trading 212':'invest','Freedom24':'invest','IBM PENSÕES':'invest','IBM STOCKS':'invest',
+  'Crypto.com':'crypto','Ledger':'crypto','Coinbase':'crypto','Binance':'crypto','Nexo':'crypto','Bit2Me':'crypto',
+  'GoParity':'p2p','Esketit':'p2p','Peerberry':'p2p','EstateGuru':'p2p','Robocash':'p2p','Scramble':'p2p','Maclear':'p2p','8Lends':'p2p',
+  'Corretora':'invest','Carteira crypto':'crypto','P2P':'p2p'
+};
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+// Dados pré-carregados do Excel de Pedro Carita (2025)
+const SEED_DATA = [
+  // ── 2024 ──────────────────────────────────────────────────────
+  { date:'2024-01', platforms:{ 'XTB':8300,  'Fundo de Emergência':1790, 'IBM PENSÕES':10525, 'IBM STOCKS':200   } },
+  { date:'2024-02', platforms:{ 'XTB':9117,  'Fundo de Emergência':1892, 'IBM PENSÕES':10610, 'IBM STOCKS':400   } },
+  { date:'2024-03', platforms:{ 'XTB':9638,  'Fundo de Emergência':1000, 'IBM PENSÕES':11180, 'IBM STOCKS':695   } },
+  { date:'2024-04', platforms:{ 'XTB':10940, 'Fundo de Emergência':1220, 'IBM PENSÕES':11839, 'IBM STOCKS':844   } },
+  { date:'2024-05', platforms:{ 'XTB':10540, 'Fundo de Emergência':1300, 'IBM PENSÕES':11841, 'IBM STOCKS':1446  } },
+  { date:'2024-06', platforms:{ 'XTB':11153, 'Fundo de Emergência':1330, 'IBM PENSÕES':12953, 'IBM STOCKS':1643  } },
+  { date:'2024-07', platforms:{ 'XTB':11720, 'Fundo de Emergência':1400, 'IBM PENSÕES':13220, 'IBM STOCKS':2050  } },
+  { date:'2024-08', platforms:{ 'XTB':11337, 'Fundo de Emergência':1900, 'IBM PENSÕES':13369, 'IBM STOCKS':2373  } },
+  { date:'2024-09', platforms:{ 'XTB':11513, 'Fundo de Emergência':2100, 'IBM PENSÕES':13755, 'IBM STOCKS':2946  } },
+  { date:'2024-10', platforms:{ 'XTB':11580, 'Fundo de Emergência':2000, 'IBM PENSÕES':13719, 'IBM STOCKS':3454  } },
+  { date:'2024-11', platforms:{ 'XTB':12903, 'Fundo de Emergência':1807, 'IBM PENSÕES':14242, 'IBM STOCKS':3850  } },
+  { date:'2024-12', platforms:{ 'XTB':13960, 'Fundo de Emergência':2526, 'IBM PENSÕES':14352, 'IBM STOCKS':3850  } },
+  // ── 2025 ──────────────────────────────────────────────────────
+  { date:'2025-01', platforms:{ 'XTB':16002, 'Fundo de Emergência':1834, 'IBM PENSÕES':14884, 'IBM STOCKS':3965  } },
+  { date:'2025-02', platforms:{ 'XTB':16114, 'Fundo de Emergência':2111, 'IBM PENSÕES':15104, 'IBM STOCKS':4388  } },
+  { date:'2025-03', platforms:{ 'XTB':16866, 'Fundo de Emergência':1250, 'IBM PENSÕES':16346, 'IBM STOCKS':5278  } },
+  { date:'2025-04', platforms:{ 'XTB':14720, 'Fundo de Emergência':1600, 'IBM PENSÕES':16518, 'IBM STOCKS':5085  } },
+  { date:'2025-05', platforms:{ 'XTB':13000, 'Fundo de Emergência':600,  'IBM PENSÕES':15286, 'IBM STOCKS':4836  } },
+  { date:'2025-06', platforms:{ 'XTB':15171, 'Fundo de Emergência':1500, 'IBM PENSÕES':17031, 'IBM STOCKS':5886  } },
+  { date:'2025-07', platforms:{ 'XTB':15865, 'Fundo de Emergência':1400, 'IBM PENSÕES':17296, 'IBM STOCKS':6713  } },
+  { date:'2025-08', platforms:{ 'XTB':17055, 'Fundo de Emergência':1300, 'IBM PENSÕES':17719, 'IBM STOCKS':6960  } },
+  { date:'2025-09', platforms:{ 'XTB':17313, 'Fundo de Emergência':1500, 'IBM PENSÕES':18300, 'IBM STOCKS':6142  } },
+  { date:'2025-10', platforms:{ 'XTB':16055, 'Fundo de Emergência':4300, 'IBM PENSÕES':18664, 'IBM STOCKS':7144  } },
+  { date:'2025-11', platforms:{ 'XTB':14144, 'Fundo de Emergência':1908, 'IBM PENSÕES':19386, 'IBM STOCKS':7849  } },
+  { date:'2025-12', platforms:{ 'XTB':13843, 'Fundo de Emergência':2550, 'IBM PENSÕES':19347, 'IBM STOCKS':8648  } },
+  // ── 2026 ──────────────────────────────────────────────────────
+  { date:'2026-01', platforms:{ 'XTB':14392,    'Fundo de Emergência':1500, 'IBM PENSÕES':20196, 'IBM STOCKS':9043  } },
+  { date:'2026-02', platforms:{ 'XTB':15090.38, 'Fundo de Emergência':1350, 'IBM PENSÕES':21032, 'IBM STOCKS':9018  } },
+  { date:'2026-03', platforms:{ 'XTB':14826,    'Fundo de Emergência':1000, 'IBM PENSÕES':22380, 'IBM STOCKS':7800  } },
+  { date:'2026-04', platforms:{ 'XTB':14103,    'Fundo de Emergência':800,  'IBM PENSÕES':21079, 'IBM STOCKS':8145  } },
+  { date:'2026-05', platforms:{ 'XTB':15627,    'Fundo de Emergência':1000, 'IBM PENSÕES':22278, 'IBM STOCKS':8542  } },
+  { date:'2026-06', platforms:{ 'XTB':17578,    'Fundo de Emergência':2800, 'IBM PENSÕES':23757, 'IBM STOCKS':9415  } },
+  { date:'2026-07', platforms:{ 'XTB':19283,    'Fundo de Emergência':4700, 'IBM PENSÕES':24072, 'IBM STOCKS':7269  } },
+  { date:'2026-08', platforms:{ 'XTB':21314,    'Fundo de Emergência':2000, 'IBM PENSÕES':24510, 'IBM STOCKS':6560  } },
+];
+let series = [];
+let customDates = new Set();
+let customCats  = {};
+let mainChart, sparkChart, donutChart, projChart;
+let chartMode = 'total';
+let scenario  = 'base';
+
+// ─────────────────────────────────────────────
+//  STORAGE  (pure localStorage — works as a file)
+// ─────────────────────────────────────────────
+function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function lsSet(key, val){ try{ localStorage.setItem(key, val); return true; }catch(e){ return false; } }
+
+function loadAll(){
+  try{
+    const rawCats = lsGet(CATS_KEY);
+    if(rawCats) customCats = JSON.parse(rawCats);
+  }catch(e){}
+  try{
+    const raw = lsGet(STORAGE_KEY);
+    let loaded = [];
+    if(raw) loaded = JSON.parse(raw);
+
+    // Merge seed into loaded: seed data fills in any missing months,
+    // but user-saved entries always win if they exist for the same date.
+    const userDates = new Set(loaded.map(c=>c.date));
+    SEED_DATA.forEach(c=>{
+      if(!userDates.has(c.date)) loaded.push(c);
+    });
+
+    loaded.forEach(c=>{ recompute(c); customDates.add(c.date); });
+    series = loaded.sort((a,b)=>a.date.localeCompare(b.date));
+    saveAll();
+  }catch(e){
+    // fallback — just load seed
+    SEED_DATA.forEach(c=>{ recompute(c); customDates.add(c.date); });
+    series = [...SEED_DATA].sort((a,b)=>a.date.localeCompare(b.date));
+    saveAll();
+  }
+}
+
+function saveAll(){
+  lsSet(STORAGE_KEY, JSON.stringify(series));
+  lsSet(CATS_KEY, JSON.stringify(customCats));
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+const monthsPt = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+function labelFor(d){ const [y,m]=d.split('-').map(Number); return monthsPt[m-1]+' '+y; }
+function addMonths(d,n){ let [y,m]=d.split('-').map(Number); m+=n; while(m>12){m-=12;y++;} return y+'-'+String(m).padStart(2,'0'); }
+function currentYYYYMM(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function defaultNext(){ return series.length===0 ? currentYYYYMM() : addMonths(series[series.length-1].date,1); }
+function catOf(name){ return KNOWN_CATS[name]||customCats[name]||'cash'; }
+
+function recompute(entry){
+  let cash=0,invest=0,crypto=0,p2p=0;
+  Object.entries(entry.platforms||{}).forEach(([n,v])=>{
+    const c=catOf(n); const val=v||0;
+    if(c==='cash')cash+=val; else if(c==='invest')invest+=val; else if(c==='crypto')crypto+=val; else p2p+=val;
+  });
+  entry.cash=Math.round(cash*100)/100; entry.invest=Math.round(invest*100)/100;
+  entry.crypto=Math.round(crypto*100)/100; entry.p2p=Math.round(p2p*100)/100;
+  entry.total=Math.round((cash+invest+crypto+p2p)*100)/100;
+  entry.label=labelFor(entry.date);
+  return entry;
+}
+
+function fmtEUR(v,d=0){ return new Intl.NumberFormat('pt-PT',{style:'currency',currency:'EUR',minimumFractionDigits:d,maximumFractionDigits:d}).format(v); }
+function fmtPct(v,d=1){ return (v>=0?'+':'')+v.toFixed(d)+'%'; }
+function monthlyCAGR(){ if(series.length<2)return 0; const f=series[0],l=series[series.length-1]; const [fy,fm]=f.date.split('-').map(Number); const [ly,lm]=l.date.split('-').map(Number); const n=(ly-fy)*12+(lm-fm); if(n<=0||f.total<=0)return 0; return Math.pow(l.total/f.total,1/n)-1; }
+
+function activePlatforms(){
+  if(!series.length) return [...DEFAULT_PLATS.cash,...DEFAULT_PLATS.invest,...DEFAULT_PLATS.crypto,...DEFAULT_PLATS.p2p];
+  return Object.keys(series[series.length-1].platforms||{});
+}
+
+// ─────────────────────────────────────────────
+//  RENDER ORCHESTRATOR
+// ─────────────────────────────────────────────
+function render(){
+  const empty   = document.getElementById('emptyState');
+  const dataSec = document.getElementById('dataSections');
+  if(!series.length){
+    empty.style.display=''; dataSec.style.display='none';
+    document.getElementById('asofDate').textContent='—';
+    document.getElementById('heroTotal').textContent=fmtEUR(0);
+    ['deltaMonth','deltaAll','cagrMonthly'].forEach(id=>{ document.getElementById(id).textContent='—'; document.getElementById(id).className='val'; });
+    renderHistoryTable(); return;
+  }
+  empty.style.display='none'; dataSec.style.display='';
+  const last=series[series.length-1], prev=series.length>1?series[series.length-2]:null, first=series[0];
+  document.getElementById('asofDate').textContent=labelFor(last.date);
+  document.getElementById('heroTotal').textContent=fmtEUR(last.total);
+  const cagr=monthlyCAGR();
+
+  const dEl=document.getElementById('deltaMonth');
+  if(prev){ const d=last.total-prev.total,pct=prev.total?d/prev.total*100:0; dEl.textContent=fmtEUR(d,0)+' ('+fmtPct(pct)+')'; dEl.className='val '+(d>=0?'pos':'neg'); }
+  else { dEl.textContent='—'; dEl.className='val'; }
+
+  const aEl=document.getElementById('deltaAll');
+  if(series.length>1){ const d=last.total-first.total,pct=first.total?d/first.total*100:0; aEl.textContent=fmtEUR(d,0)+' ('+fmtPct(pct,0)+')'; aEl.className='val '+(d>=0?'pos':'neg'); }
+  else { aEl.textContent='—'; aEl.className='val'; }
+
+  document.getElementById('cagrMonthly').textContent=series.length>1?fmtPct(cagr*100,2):'—';
+
+  const evEy=document.getElementById('evolutionEyebrow'); if(evEy) evEy.textContent='Desde '+first.label;
+  const coEy=document.getElementById('compositionEyebrow'); if(coEy) coEy.textContent=last.label;
+
+  try{ renderSpark(); }catch(e){}
+  try{ renderMainChart(); }catch(e){}
+  try{ renderLedger(); }catch(e){}
+  try{ renderComposition(); }catch(e){}
+
+  if(series.length>1){
+    document.getElementById('projPlaceholder').style.display='none';
+    document.getElementById('projChartCard').style.display='';
+    try{ renderScenarios(cagr); }catch(e){}
+    try{ renderProjection(cagr); }catch(e){}
+  } else {
+    ['scenarioRow','projTable'].forEach(id=>document.getElementById(id).innerHTML='');
+    document.getElementById('projChartCard').style.display='none';
+    document.getElementById('projPlaceholder').style.display='';
+    if(projChart){ projChart.destroy(); projChart=null; }
+  }
+  try{ renderHistoryTable(); }catch(e){}
+}
+
+// ─────────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────────
+function yearGridColor(){ return 'rgba(237,230,214,0.06)'; }
+function janJulOnly(v){ const l=this.getLabelForValue(v)||''; return (l.startsWith('Jan')||l.startsWith('Jul'))?l:''; }
+
+function renderSpark(){
+  if(!window.Chart)return;
+  const ctx=document.getElementById('sparkChart'); if(sparkChart)sparkChart.destroy();
+  const grad=ctx.getContext('2d').createLinearGradient(0,0,0,64);
+  grad.addColorStop(0,'rgba(91,141,239,0.35)'); grad.addColorStop(1,'rgba(91,141,239,0)');
+  sparkChart=new Chart(ctx,{ type:'line', data:{ labels:series.map(s=>s.label), datasets:[{ data:series.map(s=>s.total), borderColor:'#5B8DEF', borderWidth:1.5, pointRadius:0, fill:true, backgroundColor:grad, tension:0.3 }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{enabled:false} }, scales:{ x:{display:false}, y:{display:false} } }});
+}
+
+function renderMainChart(){
+  if(!window.Chart)return;
+  const ctx=document.getElementById('mainChart'); if(mainChart)mainChart.destroy();
+  const labels=series.map(s=>s.label);
+  let datasets;
+  if(chartMode==='total'){
+    const grad=ctx.getContext('2d').createLinearGradient(0,0,0,340);
+    grad.addColorStop(0,'rgba(91,141,239,0.28)'); grad.addColorStop(1,'rgba(91,141,239,0)');
+    datasets=[{ label:'Património total', data:series.map(s=>s.total), borderColor:'#5B8DEF', backgroundColor:grad, fill:true, tension:0.25, borderWidth:2, pointRadius:0, pointHoverRadius:4 }];
+  } else {
+    datasets=CAT_ORDER.map(k=>({ label:COLOR_NAMES[k], data:series.map(s=>s[k]), backgroundColor:COLORS[k], borderWidth:0, fill:true, stack:'a', tension:0.2, pointRadius:0 }));
+  }
+  mainChart=new Chart(ctx,{ type:'line', data:{ labels, datasets }, options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:'index', intersect:false }, plugins:{ legend:{ display:chartMode==='stacked', position:'top', align:'end', labels:{ color:'#9A9A9A', font:{ family:'IBM Plex Sans', size:11 }, boxWidth:10, boxHeight:10, usePointStyle:true, pointStyle:'circle' }}, tooltip:{ backgroundColor:'#212121', borderColor:'rgba(255,255,255,0.15)', borderWidth:1, titleColor:'#EDEDED', bodyColor:'#EDEDED', titleFont:{family:'IBM Plex Mono'}, bodyFont:{family:'IBM Plex Mono',size:11}, padding:10, displayColors:chartMode==='stacked', callbacks:{ label:(item)=>' '+(item.dataset.label||'')+': '+fmtEUR(item.parsed.y,0) }}}, scales:{ x:{ grid:{color:yearGridColor()}, ticks:{color:'#666666',font:{family:'IBM Plex Sans',size:10},maxRotation:0,autoSkip:false,callback:janJulOnly}}, y:{ stacked:chartMode==='stacked', grid:{color:yearGridColor()}, ticks:{color:'#666666',font:{family:'IBM Plex Mono',size:10},callback:v=>fmtEUR(v,0)} }}}});
+}
+
+function renderLedger(){
+  const byYear={};
+  series.forEach(s=>{ byYear[s.date.split('-')[0]]=s; });
+  const years=Object.keys(byYear).sort();
+  let html=`<div class="ledger-row head"><div>Ano</div><div></div><div>Fecho</div><div>Δ Ano</div></div>`;
+  let prev=null;
+  years.forEach(y=>{ const t=byYear[y].total; const d=prev===null?null:((t-prev)/prev)*100; html+=`<div class="ledger-row"><div class="ledger-year">${y}</div><div class="ledger-leader"></div><div class="ledger-total">${fmtEUR(t,0)}</div><div class="ledger-delta ${d===null?'':(d>=0?'pos':'neg')}">${d===null?'—':fmtPct(d,1)}</div></div>`; prev=t; });
+  document.getElementById('ledgerTable').innerHTML=html;
+}
+
+function renderComposition(){
+  const last=series[series.length-1]; const tot=CAT_ORDER.reduce((a,k)=>a+last[k],0);
+  if(window.Chart){ const ctx=document.getElementById('donutChart'); if(donutChart)donutChart.destroy(); donutChart=new Chart(ctx,{ type:'doughnut', data:{ labels:CAT_ORDER.map(k=>COLOR_NAMES[k]), datasets:[{ data:CAT_ORDER.map(k=>last[k]), backgroundColor:CAT_ORDER.map(k=>COLORS[k]), borderColor:'#1B1B1B', borderWidth:3 }]}, options:{ responsive:true, maintainAspectRatio:false, cutout:'72%', plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#212121', bodyFont:{family:'IBM Plex Mono'}, callbacks:{ label:item=>' '+item.label+': '+fmtEUR(item.parsed,0) } }}}}); }
+  let html='';
+  CAT_ORDER.forEach(k=>{ const v=last[k],pct=tot>0?v/tot*100:0; html+=`<div class="comp-item"><div class="comp-dot" style="background:${COLORS[k]}"></div><div class="comp-name">${COLOR_NAMES[k]}</div><div class="comp-pct">${pct.toFixed(1)}%</div><div class="comp-val">${fmtEUR(v,0)}</div><div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${pct}%;background:${COLORS[k]}"></div></div></div>`; });
+  document.getElementById('compLegend').innerHTML=html;
+}
+
+const SCENARIOS={ conservador:{label:'Conservador',mult:0.25}, base:{label:'Base',mult:0.5}, otimista:{label:'Optimista (ritmo histórico)',mult:1.0} };
+
+function renderScenarios(cagr){
+  document.getElementById('scenarioRow').innerHTML=Object.keys(SCENARIOS).map(key=>{ const sc=SCENARIOS[key],r=cagr*sc.mult; return `<div class="scenario-btn ${key===scenario?'active':''}" data-key="${key}"><div class="sc-title">${sc.label}</div><div class="sc-rate">${fmtPct(r*100,2)} / mês · ${fmtPct((Math.pow(1+r,12)-1)*100,1)} / ano</div></div>`; }).join('');
+  document.querySelectorAll('.scenario-btn').forEach(btn=>btn.addEventListener('click',()=>{ scenario=btn.dataset.key; const c=monthlyCAGR(); renderScenarios(c); renderProjection(c); }));
+}
+
+function yearEndTargets(lastDate,n){ const [ly,lm]=lastDate.split('-').map(Number); const t=[]; let y=ly; while(t.length<n){ const mf=(y-ly)*12+(12-lm); if(mf>0)t.push({year:y,months:mf}); y++; } return t; }
+
+function renderProjection(cagr){
+  const rate=cagr*SCENARIOS[scenario].mult; const last=series[series.length-1]; const targets=yearEndTargets(last.date,3);
+  const hm=targets[targets.length-1].months; const pLabels=[],pVals=[]; let v=last.total;
+  for(let i=0;i<=hm;i++){ pLabels.push(i===0?last.label:labelFor(addMonths(last.date,i))); pVals.push(v); v*=(1+rate); }
+  const hSlice=series.slice(-24); const hLabels=hSlice.map(s=>s.label); const hVals=hSlice.map(s=>s.total);
+  const fullLabels=[...hLabels.slice(0,-1),...pLabels]; const histPart=[...hVals.slice(0,-1),last.total,...Array(hm).fill(null)]; const projPart=[...Array(hLabels.length-1).fill(null),...pVals];
+  if(window.Chart){ const ctx=document.getElementById('projChart'); if(projChart)projChart.destroy(); const gH=ctx.getContext('2d').createLinearGradient(0,0,0,340); gH.addColorStop(0,'rgba(91,141,239,0.25)'); gH.addColorStop(1,'rgba(91,141,239,0)'); const gP=ctx.getContext('2d').createLinearGradient(0,0,0,340); gP.addColorStop(0,'rgba(76,175,125,0.22)'); gP.addColorStop(1,'rgba(76,175,125,0)'); projChart=new Chart(ctx,{ type:'line', data:{ labels:fullLabels, datasets:[{ label:'Histórico', data:histPart, borderColor:'#5B8DEF', backgroundColor:gH, fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false },{ label:'Projecção', data:projPart, borderColor:'#4CAF7D', backgroundColor:gP, borderDash:[5,4], fill:true, borderWidth:2, pointRadius:0, tension:0.25, spanGaps:false }]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false}, plugins:{ legend:{position:'top',align:'end',labels:{color:'#9A9A9A',font:{family:'IBM Plex Sans',size:11},boxWidth:10,boxHeight:10,usePointStyle:true,pointStyle:'circle'}}, tooltip:{backgroundColor:'#212121',bodyFont:{family:'IBM Plex Mono',size:11},callbacks:{label:item=>item.parsed.y===null?undefined:' '+item.dataset.label+': '+fmtEUR(item.parsed.y,0)}}}, spaces:{ x:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Sans',size:10},maxRotation:0,autoSkip:false,callback:janJulOnly}}, y:{grid:{color:yearGridColor()},ticks:{color:'#666666',font:{family:'IBM Plex Mono',size:10},callback:v=>fmtEUR(v,0)}} }}}); }
+  document.getElementById('projTable').innerHTML=targets.map(t=>{ const val=last.total*Math.pow(1+rate,t.months); return `<div class="proj-cell"><div class="pc-label">31 dez ${t.year}</div><div class="pc-val num">${fmtEUR(val,0)}</div><div class="pc-delta">${fmtPct(((val-last.total)/last.total)*100,0)}</div></div>`; }).join('');
+}
+
+function renderHistoryTable(){
+  const rows=[...series].sort((a,b)=>b.date.localeCompare(a.date));
+  let html=`<thead><tr><th>Mês</th><th>Liquidez</th><th>Investimentos</th><th>Crypto</th><th>P2P</th><th>Total</th><th></th></tr></thead><tbody>`;
+  rows.forEach(r=>{
+    const plats=Object.entries(r.platforms||{}).filter(([,v])=>v!==0);
+    html+=`<tr data-date="${r.date}"><td>${r.label}<span class="custom-tag">✓</span></td><td>${fmtEUR(r.cash,0)}</td><td>${fmtEUR(r.invest,0)}</td><td>${fmtEUR(r.crypto,0)}</td><td>${fmtEUR(r.p2p,0)}</td><td style="color:var(--gold)">${fmtEUR(r.total,0)}</td><td><div class="row-actions"><button class="icon-btn detail-row" data-date="${r.date}">detalhe</button><button class="icon-btn edit-row" data-date="${r.date}">editar</button><button class="icon-btn danger delete-row" data-date="${r.date}">apagar</button></div></td></tr>
+    <tr class="detail-tr" data-detail-for="${r.date}" style="display:none;"><td colspan="7" style="background:rgba(0,0,0,0.15);padding:14px;"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px 20px;">${plats.map(([n,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text-dim)">${n}</span><span>${fmtEUR(v,0)}</span></div>`).join('')||'<span style="font-size:12px;color:var(--text-faint)">sem detalhe</span>'}</div></td></tr>`;
+  });
+  html+='</tbody>';
+  document.getElementById('historyTable').innerHTML=html;
+
+  document.querySelectorAll('.detail-row').forEach(btn=>btn.addEventListener('click',()=>{ const tr=document.querySelector(`.detail-tr[data-detail-for="${btn.dataset.date}"]`); if(tr)tr.style.display=tr.style.display==='none'?'':'none'; }));
+  document.querySelectorAll('.edit-row').forEach(btn=>btn.addEventListener('click',()=>{ const e=series.find(s=>s.date===btn.dataset.date); document.getElementById('inMonth').value=btn.dataset.date; renderPlatformForm(e.platforms||{}); document.querySelector('.update-card').scrollIntoView({behavior:'smooth',block:'center'}); }));
+  document.querySelectorAll('.delete-row').forEach(btn=>btn.addEventListener('click',()=>{ if(!confirm('Apagar o lançamento de '+labelFor(btn.dataset.date)+'?'))return; series=series.filter(s=>s.date!==btn.dataset.date); customDates.delete(btn.dataset.date); saveAll(); render(); }));
+}
+
+// ─────────────────────────────────────────────
+//  PLATFORM FORM
+// ─────────────────────────────────────────────
+function platRowHTML(name,value){ return `<div class="plat-row"><input type="text" class="plat-name" value="${(name||'').replace(/"/g,'&quot;')}" placeholder="Nome da plataforma"><input type="number" class="plat-value" step="0.01" placeholder="0.00" value="${value===''||value===undefined?'':value}"><button type="button" class="plat-remove" title="remover">×</button></div>`; }
+
+function buildGroupsHTML(prefill){
+  const byCat={cash:[],invest:[],crypto:[],p2p:[]};
+  const names=activePlatforms(); const src=prefill||{};
+  const used=new Set([...Object.keys(src),...names]);
+  used.forEach(n=>{ const c=catOf(n); byCat[c].push({name:n,value:src[n]}); });
+  return CAT_ORDER.map(cat=>`<div class="plat-group" data-cat="${cat}"><div class="plat-group-head"><div class="plat-group-title"><span class="swatch" style="background:${COLORS[cat]}"></span>${COLOR_NAMES[cat]}</div><div class="plat-group-total num" data-group-total="${cat}">€ 0</div></div><div class="plat-rows" data-rows="${cat}">${byCat[cat].map(r=>platRowHTML(r.name,r.value)).join('')}</div><button type="button" class="plat-add" data-add="${cat}">+ nova plataforma</button></div>`).join('');
+}
+
+function wireFormEvents(){
+  document.querySelectorAll('#platformGroups input').forEach(i=>i.addEventListener('input',updatePreview));
+  document.querySelectorAll('.plat-remove').forEach(btn=>btn.addEventListener('click',()=>{ btn.closest('.plat-row').remove(); updatePreview(); }));
+  document.querySelectorAll('.plat-add').forEach(btn=>btn.addEventListener('click',()=>{ const cat=btn.dataset.add; const c=document.querySelector(`.plat-rows[data-rows="${cat}"]`); c.insertAdjacentHTML('beforeend',platRowHTML('','')); const row=c.lastElementChild; row.querySelectorAll('input').forEach(i=>i.addEventListener('input',updatePreview)); row.querySelector('.plat-remove').addEventListener('click',()=>{ row.remove(); updatePreview(); }); row.querySelector('.plat-name').focus(); }));
+}
+
+function readFormPlatforms(){
+  const platforms={}; const groupTotals={cash:0,invest:0,crypto:0,p2p:0};
+  document.querySelectorAll('.plat-group').forEach(group=>{ const cat=group.dataset.cat; let sum=0; group.querySelectorAll('.plat-row').forEach(row=>{ const n=row.querySelector('.plat-name').value.trim(); const v=parseFloat(row.querySelector('.plat-value').value)||0; if(n){ platforms[n]=v; if(!KNOWN_CATS[n])customCats[n]=cat; sum+=v; } }); groupTotals[cat]=sum; });
+  return { platforms, groupTotals };
+}
+
+function updatePreview(){
+  const { groupTotals }=readFormPlatforms();
+  CAT_ORDER.forEach(cat=>{ const el=document.querySelector(`[data-group-total="${cat}"]`); if(el)el.textContent=fmtEUR(groupTotals[cat],2); });
+  document.getElementById('formPreview').textContent=fmtEUR(CAT_ORDER.reduce((a,c)=>a+groupTotals[c],0),2);
+}
+
+function renderPlatformForm(prefill){ document.getElementById('platformGroups').innerHTML=buildGroupsHTML(prefill); wireFormEvents(); updatePreview(); }
+
+// ─────────────────────────────────────────────
+//  SAVE ENTRY
+// ─────────────────────────────────────────────
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const monthVal=document.getElementById('inMonth').value;
+  if(!monthVal){ document.getElementById('formStatus').textContent='Escolhe o mês.'; return; }
+  const { platforms }=readFormPlatforms();
+  const total=Object.values(platforms).reduce((a,v)=>a+v,0);
+  if(total<=0){ document.getElementById('formStatus').textContent='Preenche pelo menos um valor.'; return; }
+  const entry=recompute({ date:monthVal, label:labelFor(monthVal), platforms });
+  const idx=series.findIndex(s=>s.date===entry.date);
+  if(idx>=0) series[idx]=entry; else series.push(entry);
+  series.sort((a,b)=>a.date.localeCompare(b.date));
+  customDates.add(entry.date);
+  saveAll();
+  render();
+  const st=document.getElementById('formStatus'); st.textContent='Guardado — '+entry.label+' actualizado.'; st.className='form-status ok';
+  document.getElementById('inMonth').value=addMonths(entry.date,1);
+  renderPlatformForm(null);
+});
+
+// ─────────────────────────────────────────────
+//  CHART TOGGLE
+// ─────────────────────────────────────────────
+document.getElementById('chartToggle').addEventListener('click',e=>{ const btn=e.target.closest('.toggle-btn'); if(!btn)return; document.querySelectorAll('#chartToggle .toggle-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); chartMode=btn.dataset.mode; renderMainChart(); });
+
+// ─────────────────────────────────────────────
+//  EXPORT / IMPORT / CLEAR
+// ─────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(series,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='patrimonio-backup-'+currentYYYYMM()+'.json'; a.click();
+});
+
+document.getElementById('importBtn').addEventListener('click',()=>{ document.getElementById('importFile').click(); });
+document.getElementById('importFile').addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{ try{ const data=JSON.parse(ev.target.result); data.forEach(c=>{ recompute(c); customDates.add(c.date); const idx=series.findIndex(s=>s.date===c.date); if(idx>=0)series[idx]=c; else series.push(c); }); series.sort((a,b)=>a.date.localeCompare(b.date)); saveAll(); render(); alert('Importado com sucesso! '+data.length+' entradas.'); }catch(err){ alert('Ficheiro inválido.'); } };
+  reader.readAsText(file); e.target.value='';
+});
+
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(!confirm('Apagar TODOS os dados? Esta acção não pode ser desfeita.'))return; series=[]; customDates=new Set(); customCats={}; saveAll(); render(); document.getElementById('inMonth').value=currentYYYYMM(); renderPlatformForm(null); });
+
+// ─────────────────────────────────────────────
+//  PORTFOLIO DE ACÇÕES
+// ─────────────────────────────────────────────
+const PORTFOLIO_PLATFORMS = [
+  { id:'xtb',          name:'XTB',               currency:'EUR' },
+  { id:'ageas',        name:'AGEAS',              currency:'EUR' },
+  { id:'ibm_compute',  name:'IBM Computershare',  currency:'USD' },
+];
+
+const PORTFOLIO_SEED = {
+  xtb: [
+    { name:'NASDAQ 100',        qty:5.5809,  avgCost:963.73,  currentPrice:1462.00, currency:'EUR' },
+    { name:'Core S&P 500',      qty:11.136,  avgCost:471.38,  currentPrice:707.24,  currency:'EUR' },
+    { name:'Semiconductor',     qty:15.4987, avgCost:83.95,   currentPrice:95.90,   currency:'EUR' },
+    { name:'Galp Energia',      qty:1,       avgCost:0.001,   currentPrice:19.780,  currency:'EUR' },
+    { name:'AMD',               qty:0.9795,  avgCost:459.69,  currentPrice:466.50,  currency:'EUR' },
+    { name:'Rocket Lab',        qty:3.4562,  avgCost:66.34,   currentPrice:68.82,   currency:'EUR' },
+    { name:'Apple',             qty:0.0651,  avgCost:269.84,  currentPrice:326.36,  currency:'EUR' },
+    { name:'CoreWeave',         qty:2.3358,  avgCost:75.09,   currentPrice:77.49,   currency:'EUR' },
+    { name:'Intel',             qty:4.3287,  avgCost:101.23,  currentPrice:102.71,  currency:'EUR' },
+    { name:'Millennium BCP',    qty:11,      avgCost:0.8950,  currentPrice:1.0585,  currency:'EUR' },
+    { name:'EDP Renováveis',    qty:0.7446,  avgCost:13.430,  currentPrice:13.960,  currency:'EUR' },
+    { name:'C3.ai',             qty:1.2434,  avgCost:9.47,    currentPrice:8.77,    currency:'EUR' },
+    { name:'SoundHound',        qty:1.4013,  avgCost:8.85,    currentPrice:6.48,    currency:'EUR' },
+    { name:'Microsoft',         qty:0.3546,  avgCost:471.98,  currentPrice:400.45,  currency:'EUR' },
+    { name:'Palantir',          qty:1.7349,  avgCost:168.15,  currentPrice:134.18,  currency:'EUR' },
+    { name:'Quantum Computing', qty:38.4098, avgCost:26.035,  currentPrice:24.015,  currency:'EUR' },
+    { name:'Viking Therapeutics',qty:11.1277,avgCost:43.09,   currentPrice:37.41,   currency:'EUR' },
+  ],
+  ageas: [
+    // Total investido calculado:
+    //   Set–Dez 2020 →  4 meses × 165,00€ =  660,00€
+    //   Jan–Jul 2021 →  7 meses × 165,00€ = 1155,00€
+    //   Ago 2021–Jun 2023 → 23 meses × 188,50€ = 4335,50€
+    //   Jul 2023–Jul 2026 → 37 meses × 200,00€ = 7400,00€
+    //   Total investido: 13 550,50€
+    // Divisão proporcional pelos dois fundos (% do valor actual total 24 366,74€):
+    //   Europeias: 17102,90 / 24366,74 = 70,2% → 9 512,55€ investidos
+    //   Globais:    7263,84 / 24366,74 = 29,8% → 4 037,95€ investidos
+    { name:'IBM CD Acções Europeias', qty:1, avgCost:9512.55, currentPrice:17102.90, currency:'EUR' },
+    { name:'IBM CD Acções Globais',   qty:1, avgCost:4037.95, currentPrice:7263.84,  currency:'EUR' },
+  ],
+  ibm_compute: [
+    // ── VENDA 27/04/2026 — 10.678 acções a US$228.84 (líquido: US$2 388.60) ──────────
+    // Lotes vendidos (FIFO): 31/01 × 1.407 | 29/02 × 1.327 | 28/03 × 1.925
+    //                        30/04 × 1.470 | 31/05 × 3.101 | 28/06 × 1.448
+    // ─────────────────────────────────────────────────────────────────────────────────
+
+    // ── Vendido 27/04/2026 — 10.678 acções a $228.84 · Ganho líquido $530.17 ─────────
+    { name:'VENDA 27/04/2026 (10.678 acções)', qty:10.678, avgCost:154.59, currentPrice:228.84, currency:'USD', sold:true },
+
+    // ── Qualified shares ──────────────────────────────────────────────────────────────
+    { name:'IBM ESPP 11/03/2024', qty:0.00900, avgCost:193.20699, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/07/2024', qty:1.35600, avgCost:163.43000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 30/08/2024', qty:1.53500, avgCost:170.39000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 30/09/2024', qty:1.31000, avgCost:187.15000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/10/2024', qty:1.36200, avgCost:174.95000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 29/11/2024', qty:2.18200, avgCost:194.46000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/12/2024', qty:1.21800, avgCost:186.79000, currentPrice:210.00, currency:'USD' },
+
+    // ── Dividend shares ───────────────────────────────────────────────────────────────
+    { name:'IBM Div  10/06/2024', qty:0.05000, avgCost:169.76810, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  10/09/2024', qty:0.08200, avgCost:204.93278, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  10/12/2024', qty:0.09800, avgCost:232.79434, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  10/03/2025', qty:0.11200, avgCost:259.17720, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  10/06/2025', qty:0.12600, avgCost:276.20083, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  12/09/2025', qty:0.16328, avgCost:260.16338, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  11/12/2025', qty:0.14876, avgCost:318.90263, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  11/03/2026', qty:0.20590, avgCost:257.17963, currentPrice:210.00, currency:'USD' },
+    { name:'IBM Div  11/06/2026', qty:0.16100, avgCost:272.34700, currentPrice:210.00, currency:'USD' },
+
+    // ── Disqualified shares ───────────────────────────────────────────────────────────
+    { name:'IBM ESPP 30/04/2025', qty:1.82800, avgCost:202.65000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 30/05/2025', qty:2.21000, avgCost:219.82000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 30/06/2025', qty:1.34765, avgCost:248.55000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/07/2025', qty:1.15953, avgCost:217.69000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 29/08/2025', qty:1.11349, avgCost:207.06000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 30/09/2025', qty:1.10088, avgCost:240.78000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/10/2025', qty:1.09650, avgCost:261.44000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 28/11/2025', qty:1.08838, avgCost:260.44000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/12/2025', qty:0.93217, avgCost:254.04000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 21/01/2026', qty:0.89203, avgCost:250.83000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 20/02/2026', qty:1.23775, avgCost:217.96000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 20/03/2026', qty:1.08544, avgCost:209.13000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 21/04/2026', qty:2.20909, avgCost:216.74000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 21/05/2026', qty:2.37980, avgCost:205.95000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 18/06/2026', qty:1.24270, avgCost:210.87000, currentPrice:210.00, currency:'USD' },
+    // Disqualified — sem Purchase FMV ainda
+    { name:'IBM ESPP 31/01/2025', qty:1.00400, avgCost:216.39000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 28/02/2025', qty:0.97000, avgCost:212.23000, currentPrice:210.00, currency:'USD' },
+    { name:'IBM ESPP 31/03/2025', qty:1.11100, avgCost:209.69000, currentPrice:210.00, currency:'USD' },
+  ],
+};
+
+let portfolio = {};  // { platformId: [ { name, qty, avgCost, currentPrice, currency } ] }
+
+function portfolioLoad(){
+  try{
+    const raw = lsGet(PORTFOLIO_KEY);
+    if(raw){
+      portfolio = JSON.parse(raw);
+    } else {
+      // primeira vez — usa os dados seed
+      portfolio = JSON.parse(JSON.stringify(PORTFOLIO_SEED));
+      portfolioSave();
+    }
+  }catch(e){
+    portfolio = JSON.parse(JSON.stringify(PORTFOLIO_SEED));
+  }
+  // garante que cada plataforma existe
+  PORTFOLIO_PLATFORMS.forEach(p=>{ if(!portfolio[p.id]) portfolio[p.id]=[]; });
+}
+
+function portfolioSave(){
+  lsSet(PORTFOLIO_KEY, JSON.stringify(portfolio));
+}
+
+function portfolioPlatSummary(positions){
+  let invested=0, current=0, realisedPL=0;
+  positions.forEach(p=>{
+    if(p.sold){
+      // posição fechada — só conta o ganho realizado, não o valor actual
+      realisedPL += (p.qty||0)*((p.currentPrice||0)-(p.avgCost||0));
+    } else {
+      invested += (p.qty||0)*(p.avgCost||0);
+      current  += (p.qty||0)*(p.currentPrice||p.avgCost||0);
+    }
+  });
+  const pl     = (current - invested) + realisedPL;
+  const base   = invested + (positions.filter(p=>p.sold).reduce((a,p)=>(a+(p.qty||0)*(p.avgCost||0)),0));
+  const plPct  = base>0 ? (pl/base)*100 : 0;
+  return { invested, current, pl, plPct, realisedPL };
+}
+
+function fmtPortfolio(v, currency){
+  if(currency==='USD') return '$'+v.toLocaleString('pt-PT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return fmtEUR(v,2);
+}
+
+function renderPortfolio(){
+  const container = document.getElementById('portfolioContainer');
+  if(!container) return;
+  let html = '';
+
+  PORTFOLIO_PLATFORMS.forEach(plat=>{
+    const positions = portfolio[plat.id] || [];
+    const { invested, current, pl, plPct, realisedPL } = portfolioPlatSummary(positions);
+    const plClass = pl >= 0 ? 'pos' : 'neg';
+    const cur = plat.currency;
+
+    html += `<div class="portfolio-plat" data-plat="${plat.id}">
+      <div class="portfolio-plat-head">
+        <div class="portfolio-plat-name">${plat.name}</div>
+        <div class="portfolio-plat-summary">
+          <div class="portfolio-plat-stat">Investido <span class="sv">${fmtPortfolio(invested,cur)}</span></div>
+          <div class="portfolio-plat-stat">Valor actual <span class="sv">${fmtPortfolio(current,cur)}</span></div>
+          <div class="portfolio-plat-stat">Lucro/Perda <span class="sv ${plClass}">${fmtPortfolio(pl,cur)} (${pl>=0?'+':''}${plPct.toFixed(1)}%)</span></div>
+          ${realisedPL!==0?`<div class="portfolio-plat-stat">Realizado <span class="sv ${realisedPL>=0?'pos':'neg'}">${fmtPortfolio(realisedPL,cur)}</span></div>`:''}
+        </div>
+      </div>
+      <table class="portfolio-table">
+        <thead><tr>
+          <th>Acção</th>
+          <th>Qtd.</th>
+          <th>Preço compra</th>
+          <th>Preço actual</th>
+          <th>Gain / Unit</th>
+          <th>Valor actual</th>
+          <th>Lucro / Perda</th>
+          <th></th>
+        </tr></thead>
+        <tbody>`;
+
+    if(positions.length===0){
+      html += `<tr><td colspan="8" style="text-align:center;color:var(--text-faint);padding:20px;">Ainda não tens acções registadas.</td></tr>`;
+    } else {
+      positions.forEach((pos, idx)=>{
+        if(pos.sold){
+          const pl_    = (pos.qty||0)*((pos.currentPrice||0)-(pos.avgCost||0));
+          const pct_   = pos.avgCost>0 ? ((pos.currentPrice-pos.avgCost)/pos.avgCost)*100 : 0;
+          const gainU  = (pos.currentPrice||0)-(pos.avgCost||0);
+          html += `<tr style="opacity:0.6;background:rgb(76 175 125 / 4%);">
+            <td class="td-name" style="font-style:italic;">${pos.name||'—'}<span class="td-currency">${cur}</span></td>
+            <td style="color:var(--text-faint);">${(pos.qty||0).toLocaleString('pt-PT',{minimumFractionDigits:0,maximumFractionDigits:4})}</td>
+            <td style="color:var(--text-faint);">${fmtPortfolio(pos.avgCost||0,cur)}</td>
+            <td style="color:var(--text-faint);">${fmtPortfolio(pos.currentPrice||0,cur)}</td>
+            <td class="pos">${gainU>=0?'+':''}${fmtPortfolio(gainU,cur)}</td>
+            <td style="color:var(--text-faint);">—</td>
+            <td class="pos">${fmtPortfolio(pl_,cur)} <span style="font-size:11px;">(+${pct_.toFixed(1)}%)</span></td>
+            <td><span style="font-size:10px;color:var(--mint);border:1px solid var(--mint);border-radius:3px;padding:2px 6px;">vendido</span></td>
+          </tr>`;
+        } else {
+          const val    = (pos.qty||0) * (pos.currentPrice||pos.avgCost||0);
+          const cost   = (pos.qty||0) * (pos.avgCost||0);
+          const pl_    = val - cost;
+          const pct_  = cost>0 ? (pl_/cost)*100 : 0;
+          const cls   = pl_ >= 0 ? 'pos' : 'neg';
+          html += `<tr data-idx="${idx}">
+            <td class="td-name">${pos.name||'—'}<span class="td-currency">${cur}</span></td>
+            <td>${(pos.qty||0).toLocaleString('pt-PT',{minimumFractionDigits:0,maximumFractionDigits:4})}</td>
+            <td>${fmtPortfolio(pos.avgCost||0,cur)}</td>
+            <td>${fmtPortfolio(pos.currentPrice||0,cur)}</td>
+            <td class="${cls}">${(pos.currentPrice-pos.avgCost)>=0?'+':''}${fmtPortfolio((pos.currentPrice||0)-(pos.avgCost||0),cur)}</td>
+            <td>${fmtPortfolio(val,cur)}</td>
+            <td class="${cls}">${fmtPortfolio(pl_,cur)} <span style="font-size:11px;">(${pl_>=0?'+':''}${pct_.toFixed(1)}%)</span></td>
+            <td><div class="portfolio-row-actions">
+              <button class="icon-btn pf-edit" data-plat="${plat.id}" data-idx="${idx}">editar</button>
+              <button class="icon-btn danger pf-del" data-plat="${plat.id}" data-idx="${idx}">×</button>
+            </div></td>
+          </tr>`;
+        }
+      });
+    }
+
+    html += `</tbody></table>
+      <button class="portfolio-add-btn pf-add" data-plat="${plat.id}">+ Adicionar acção</button>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+
+  // ── Eventos ──
+  container.querySelectorAll('.pf-add').forEach(btn=>{
+    btn.addEventListener('click', ()=> portfolioOpenForm(btn.dataset.plat, null));
+  });
+  container.querySelectorAll('.pf-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> portfolioOpenForm(btn.dataset.plat, parseInt(btn.dataset.idx)));
+  });
+  container.querySelectorAll('.pf-del').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(!confirm('Remover esta posição?')) return;
+      portfolio[btn.dataset.plat].splice(parseInt(btn.dataset.idx),1);
+      portfolioSave(); renderPortfolio();
+    });
+  });
+}
+
+function portfolioOpenForm(platId, idx){
+  // fecha qualquer form aberto
+  document.querySelectorAll('.portfolio-edit-row').forEach(r=>r.remove());
+  document.querySelectorAll('.pf-add-placeholder').forEach(r=>r.remove());
+
+  const plat    = PORTFOLIO_PLATFORMS.find(p=>p.id===platId);
+  const pos     = idx!==null ? portfolio[platId][idx] : { name:'', qty:'', avgCost:'', currentPrice:'', currency: plat.currency };
+  const isEdit  = idx !== null;
+
+  const formRow = document.createElement('tr');
+  formRow.className = 'portfolio-edit-row';
+  formRow.innerHTML = `
+    <td><input class="pf-fname" placeholder="Nome (ex: MSCI World)" value="${pos.name||''}"></td>
+    <td><input class="pf-fqty" type="number" placeholder="Quantidade" step="0.0001" value="${pos.qty||''}"></td>
+    <td><input class="pf-fcost" type="number" placeholder="Preço médio" step="0.01" value="${pos.avgCost||''}"></td>
+    <td><input class="pf-fprice" type="number" placeholder="Preço actual" step="0.01" value="${pos.currentPrice||''}"></td>
+    <td colspan="2"></td>
+    <td><div class="pe-actions">
+      <button class="pe-save">Guardar</button>
+      <button class="pe-cancel">Cancelar</button>
+    </div></td>`;
+
+  // insere o form na tabela correcta
+  const platDiv = document.querySelector(`.portfolio-plat[data-plat="${platId}"]`);
+  const tbody   = platDiv.querySelector('tbody');
+  if(isEdit){
+    const editedRow = tbody.querySelectorAll('tr')[idx];
+    tbody.insertBefore(formRow, editedRow);
+    editedRow.style.display = 'none';
+    formRow._editedRow = editedRow;
+  } else {
+    tbody.appendChild(formRow);
+  }
+
+  formRow.querySelector('.pe-cancel').addEventListener('click', ()=>{
+    if(formRow._editedRow) formRow._editedRow.style.display='';
+    formRow.remove();
+  });
+
+  formRow.querySelector('.pe-save').addEventListener('click', ()=>{
+    const name  = formRow.querySelector('.pf-fname').value.trim();
+    const qty   = parseFloat(formRow.querySelector('.pf-fqty').value)||0;
+    const cost  = parseFloat(formRow.querySelector('.pf-fcost').value)||0;
+    const price = parseFloat(formRow.querySelector('.pf-fprice').value)||0;
+    if(!name){ alert('Indica o nome da acção.'); return; }
+    const entry = { name, qty, avgCost:cost, currentPrice:price, currency:plat.currency };
+    if(isEdit) portfolio[platId][idx] = entry;
+    else       portfolio[platId].push(entry);
+    portfolioSave();
+    renderPortfolio();
+  });
+}
+
+// ─────────────────────────────────────────────
+//  CHART.JS LOADER
+// ─────────────────────────────────────────────
+function loadChartJs(){
+  const urls=['https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js','https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js','https://unpkg.com/chart.js@4.4.4/dist/chart.umd.min.js'];
+  function tryLoad(i){ return new Promise(resolve=>{ if(window.Chart){resolve(true);return;} if(i>=urls.length){resolve(false);return;} const s=document.createElement('script'); s.src=urls[i]; s.onload=()=>resolve(true); s.onerror=()=>{ s.remove(); tryLoad(i+1).then(resolve); }; document.head.appendChild(s); setTimeout(()=>{ if(!window.Chart){s.remove();tryLoad(i+1).then(resolve);} },4000); }); }
+  return tryLoad(0);
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+(async function init(){
+  await loadChartJs();
+  loadAll();
+  portfolioLoad();
+  renderPortfolio();
+  document.getElementById('inMonth').value=defaultNext();
+  renderPlatformForm(null);
+  render();
+  if(!window.Chart){ document.querySelector('.wrap').insertAdjacentHTML('afterbegin','<div style="background:#5B8DEF22;border:1px solid #5B8DEF;border-radius:8px;padding:14px 16px;margin:16px 0;font-size:13px;">Os gráficos não conseguiram carregar. Verifica a ligação à internet. Os valores e tabelas continuam corretos.</div>'); }
+})();
+</script>
+</body>
+</html>

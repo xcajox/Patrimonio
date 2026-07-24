@@ -2,13 +2,16 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Património — Tracker</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#121212">
+<!-- ── PWA / iOS ─────────────────────────────────────────────────── -->
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Património">
+<link rel="apple-touch-icon" href="icon-apple.png">
+<!-- viewport: impede zoom acidental no mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -1651,6 +1654,19 @@ document.getElementById('pdfBtn').addEventListener('click',()=>{
   window.print();
   setTimeout(()=>{ const s=document.getElementById('print-override'); if(s) s.remove(); }, 1000);
 });
+</script>
+
+<script>
+// ─────────────────────────────────────────────
+//  SERVICE WORKER — registo para PWA / offline
+// ─────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg  => console.log('SW registado:', reg.scope))
+      .catch(err => console.warn('SW falhou:', err));
+  });
+}
 </script>
 </body>
 </html>
